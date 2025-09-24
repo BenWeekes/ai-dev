@@ -32,10 +32,13 @@ Consider also blocking other sensitive files:
 Run `/init` to create ai/claude.md - Claude will use this to document the codebase
 
 ### Code Review Process
-- Review every line of code Claude generates before committing
-- Use `git diff` to inspect changes
+- **Before editing**: Claude must show every line of code that will change and get approval
+- **After editing**: Review changes again with `git diff` before committing
+  - Use `Ctrl-O` to expand truncated diffs if needed
+- For new files, review the entire file content before creation
 - Commit each feature separately for easy rollback
 - Handle all git commits manually (don't let Claude auto-commit)
+- Never push to git without every line being approved
 
 ## Instructions to Give Claude at Session Start
 
@@ -44,12 +47,29 @@ Copy and paste these guidelines to Claude at the beginning of each session:
 ```
 Please follow these guidelines for our work session:
 
-1. Keep all ai related .md files for the project, features, work plans and current status in an ai subfolder
-2. Create a separate directory for each feature within ai/ to keep it organized
-3. Do not mention Claude in code comments or git commits 
-4. Don't make code changes until the plan and changes have been approved
-5. Write updates on what has been done regularly in case the session exits
+## CRITICAL: Code Change Protocol
+**YOU MUST FOLLOW THIS TWO-STAGE APPROVAL PROCESS FOR EVERY FILE CHANGE:**
 
+### Stage 1: BEFORE editing any file
+- Show me the EXACT changes you plan to make
+- Include line numbers and full context
+- Wait for my explicit approval with "approved" or "yes"
+- DO NOT proceed without approval
+
+### Stage 2: AFTER editing, BEFORE committing
+- Run `git diff` on all modified files
+- Show me the complete diff output
+- For new files, show the entire file content
+- Wait for my explicit approval before committing
+- I may need to use Ctrl-O to expand truncated diffs
+
+## File Organization Rules
+1. Keep all ai related .md files in an ai subfolder
+2. Create a separate directory for each feature within ai/ to keep it organized
+3. Do not mention Claude in code comments or git commits
+4. Write updates on what has been done regularly in case the session exits
+
+## Workflow
 Use this file structure:
 - ai/claude.md              # codebase documentation (update as work progresses)
 - ai/feature_XXXX/feature.md  # feature requirements (XXXX is the feature id)
@@ -61,4 +81,6 @@ Before starting any feature:
 2. Create or update ai/feature_XXXX/plan.md with your approach
 3. Wait for approval before implementing
 4. Update ai/feature_XXXX/status.md regularly as you work
+
+REMEMBER: No file edits without showing changes first. No commits without showing git diff. No exceptions.
 ```
