@@ -1,1 +1,64 @@
-# ai-dev
+# Claude Code Developer Guide
+
+## Install Claude Code on Ubuntu 
+```bash
+sudo apt install -y nodejs npm
+npm install -g @anthropic-ai/claude-code
+```
+
+## Install Claude Code on Mac 
+```bash
+npm install -g @anthropic-ai/claude-code
+```
+
+## Developer Setup and Best Practices
+
+### Working Directory
+Run Claude in the project root or its src root folder. Keep any sensitive keys or secret sauce code separate from Claude.
+
+### Protecting Sensitive Files
+Claude Code can read all files in your project by default. To prevent access to sensitive files like .env:
+1. Type `/permissions` in Claude Code
+2. Select `Deny` then enter a new rule: `Read(./.env)`
+3. Save in either project settings (current project only) or user settings (all projects)
+
+Consider also blocking other sensitive files:
+- `Read(./.env.local)`
+- `Read(./.env.production)`
+- `Read(./config/secrets.*)`
+- `Read(./**/private_key.pem)`
+
+### Initial Setup
+Run `/init` to create ai/claude.md - Claude will use this to document the codebase
+
+### Code Review Process
+- Review every line of code Claude generates before committing
+- Use `git diff` to inspect changes
+- Commit each feature separately for easy rollback
+- Handle all git commits manually (don't let Claude auto-commit)
+
+## Instructions to Give Claude at Session Start
+
+Copy and paste these guidelines to Claude at the beginning of each session:
+
+```
+Please follow these guidelines for our work session:
+
+1. Keep all ai related .md files for the project, features, work plans and current status in an ai subfolder
+2. Create a separate directory for each feature within ai/ to keep it organized
+3. Do not mention Claude in code comments or git commits 
+4. Don't make code changes until the plan and changes have been approved
+5. Write updates on what has been done regularly in case the session exits
+
+Use this file structure:
+- ai/claude.md              # codebase documentation (update as work progresses)
+- ai/feature_XXXX/feature.md  # feature requirements (XXXX is the feature id)
+- ai/feature_XXXX/plan.md     # work plan for the feature
+- ai/feature_XXXX/status.md   # current progress and updates
+
+Before starting any feature:
+1. Review the feature requirements in ai/feature_XXXX/feature.md
+2. Create or update ai/feature_XXXX/plan.md with your approach
+3. Wait for approval before implementing
+4. Update ai/feature_XXXX/status.md regularly as you work
+```
