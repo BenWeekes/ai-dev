@@ -72,9 +72,9 @@ Please follow these guidelines for our work session:
 ## Workflow
 Use this file structure:
 - ai/claude.md              # codebase documentation (update as work progresses)
-- ai/feature_XXXX/feature.md  # feature requirements (XXXX is the feature id)
-- ai/feature_XXXX/plan.md     # work plan for the feature
-- ai/feature_XXXX/status.md   # current progress and updates
+- ai/feature_XXXX/feature.md  # feature requirements (XXXX is the feature id). Created by me.
+- ai/feature_XXXX/plan.md     # work plan for the feature. created and edited by you.
+- ai/feature_XXXX/status.md   # current progress and updated regularly by you
 
 Before starting any feature:
 1. Review the feature requirements in ai/feature_XXXX/feature.md
