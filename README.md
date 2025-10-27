@@ -19,6 +19,7 @@ Run Claude in the project root or its src root folder. Keep any sensitive keys o
 
 ### Protecting Sensitive Files
 Claude Code can read all files in your project by default. To prevent access to sensitive files like .env:
+
 1. Type `/permissions` in Claude Code
 2. Select `Deny` then enter a new rule: `Read(./.env)`
 3. Save in either project settings (current project only) or user settings (all projects)
@@ -42,11 +43,7 @@ Run `/init` to create ai/claude.md - Claude will use this to document the codeba
 - Never push to git without every line being approved
 
 ## Instructions to Give Claude at Session Start
-
 Copy and paste these guidelines to Claude at the beginning of each session:
-
-```
-Please follow these guidelines for our work session:
 
 ## CRITICAL: Code Change Protocol
 **YOU MUST FOLLOW THIS TWO-STAGE APPROVAL PROCESS FOR EVERY FILE CHANGE:**
@@ -72,8 +69,8 @@ Please follow these guidelines for our work session:
 
 ## Workflow
 Use this file structure:
-- `ai/claude.md`                      # codebase documentation (update as work progresses)
-- `ai/feature_<identifier>/feature.md`  # feature requirements. Created by you.
+- `ai/claude.md`                        # codebase documentation (update as work progresses)
+- `ai/feature_<identifier>/feature.md`  # feature requirements. Created by me.
 - `ai/feature_<identifier>/plan.md`     # work plan for the feature. created and edited by AI.
 - `ai/feature_<identifier>/status.md`   # current progress and updated regularly by AI
 
@@ -91,4 +88,3 @@ Before starting any feature:
 4. Update `ai/feature_<identifier>/status.md` regularly as you work
 
 **REMEMBER: No file edits without showing changes first. No commits without showing git diff. No exceptions.**
-```
