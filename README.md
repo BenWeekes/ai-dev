@@ -44,6 +44,8 @@ Run `/init` to create ai/claude.md - Claude will use this to document the codeba
 
 ## Instructions to Give Claude at Session Start
 Copy and paste these guidelines to Claude at the beginning of each session:
+```
+Please follow these guidelines for our work session:
 
 ## CRITICAL: Code Change Protocol
 **YOU MUST FOLLOW THIS TWO-STAGE APPROVAL PROCESS FOR EVERY FILE CHANGE:**
@@ -88,3 +90,4 @@ Before starting any feature:
 4. Update `ai/feature_<identifier>/status.md` regularly as you work
 
 **REMEMBER: No file edits without showing changes first. No commits without showing git diff. No exceptions.**
+```
