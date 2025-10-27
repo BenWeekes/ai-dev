@@ -72,16 +72,23 @@ Please follow these guidelines for our work session:
 
 ## Workflow
 Use this file structure:
-- ai/claude.md              # codebase documentation (update as work progresses)
-- ai/feature_XXXX/feature.md  # feature requirements (XXXX is the feature id). Created by me.
-- ai/feature_XXXX/plan.md     # work plan for the feature. created and edited by you.
-- ai/feature_XXXX/status.md   # current progress and updated regularly by you
+- `ai/claude.md`                      # codebase documentation (update as work progresses)
+- `ai/feature_<identifier>/feature.md`  # feature requirements. Created by you.
+- `ai/feature_<identifier>/plan.md`     # work plan for the feature. created and edited by AI.
+- `ai/feature_<identifier>/status.md`   # current progress and updated regularly by AI
+
+**Where `<identifier>` can be:**
+- A descriptive label: `fix_high_cpu`, `user_auth`, `payment_integration`, etc.
+- An ID: `0001`, `JIRA-456`, `GH-789`, etc.
+
+**If the feature identifier is not provided, AI will ask:** 
+*"What would you like to call this feature? (e.g., a descriptive name like 'fix_high_cpu' or an ID like '0001')"*
 
 Before starting any feature:
-1. Review the feature requirements in ai/feature_XXXX/feature.md
-2. Create or update ai/feature_XXXX/plan.md with your approach
+1. Review the feature requirements in `ai/feature_<identifier>/feature.md`
+2. Create or update `ai/feature_<identifier>/plan.md` with your approach
 3. Wait for approval before implementing
-4. Update ai/feature_XXXX/status.md regularly as you work
+4. Update `ai/feature_<identifier>/status.md` regularly as you work
 
-REMEMBER: No file edits without showing changes first. No commits without showing git diff. No exceptions.
+**REMEMBER: No file edits without showing changes first. No commits without showing git diff. No exceptions.**
 ```
