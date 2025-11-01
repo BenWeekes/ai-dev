@@ -12,6 +12,28 @@ sudo npm install -g @anthropic-ai/claude-code
 npm install -g @anthropic-ai/claude-code
 ```
 
+## Stop Claude mentioning himself in commit messages    
+```bash
+  cat > .git/hooks/commit-msg << 'EOF'
+  #!/bin/bash
+  # Reject commits that mention Claude
+
+  commit_msg_file=$1
+  commit_msg=$(cat "$commit_msg_file")
+
+  if echo "$commit_msg" | grep -iq "claude"; then
+      echo "ERROR: Commit message contains 'claude'. Please remove references to Claude."
+      echo "Rejected commit message:"
+      echo "$commit_msg"
+      exit 1
+  fi
+
+  exit 0
+  EOF
+
+  chmod +x .git/hooks/commit-msg
+```
+
 ## Developer Setup and Best Practices
 
 ### Working Directory
