@@ -12,26 +12,126 @@ sudo npm install -g @anthropic-ai/claude-code
 npm install -g @anthropic-ai/claude-code
 ```
 
-## Stop Claude mentioning himself in commit messages    
+## Git Hooks for Code Quality
+
+### commit-msg Hook
+Enforces commit message standards: blocks "Claude" mentions and enforces lowercase start.
+
 ```bash
-  cat > .git/hooks/commit-msg << 'EOF'
-  #!/bin/bash
-  # Reject commits that mention Claude
+cat > .git/hooks/commit-msg << 'EOF'
+#!/bin/bash
+# Git hook to validate commit messages
 
-  commit_msg_file=$1
-  commit_msg=$(cat "$commit_msg_file")
+# Read the commit message
+commit_msg=$(cat "$1")
 
-  if echo "$commit_msg" | grep -iq "claude"; then
-      echo "ERROR: Commit message contains 'claude'. Please remove references to Claude."
-      echo "Rejected commit message:"
-      echo "$commit_msg"
-      exit 1
-  fi
+# Check for "claude" (case-insensitive)
+if echo "$commit_msg" | grep -iq "claude"; then
+    echo "❌ Commit rejected: Commit message contains 'claude'"
+    echo "Please remove references to Claude from your commit message."
+    exit 1
+fi
 
-  exit 0
-  EOF
+# Check that commit message starts with lowercase letter
+first_char=$(echo "$commit_msg" | head -c 1)
+if [[ "$first_char" =~ ^[A-Z]$ ]]; then
+    echo "❌ Commit rejected: Commit message must start with lowercase letter"
+    echo "Your message: $commit_msg"
+    exit 1
+fi
 
-  chmod +x .git/hooks/commit-msg
+# Allow the commit
+exit 0
+EOF
+
+chmod +x .git/hooks/commit-msg
+```
+
+### pre-commit Hook
+Runs lint checks and scans for secrets before allowing commits.
+
+```bash
+cat > .git/hooks/pre-commit << 'EOF'
+#!/bin/bash
+# Git hook to run lint and check for secrets before commit
+
+echo "Running pre-commit checks..."
+
+# Get list of staged files
+STAGED_FILES=$(git diff --cached --name-only --diff-filter=ACM)
+
+# Check for .env files
+if echo "$STAGED_FILES" | grep -q "\.env"; then
+    echo "❌ Commit rejected: .env file detected in staged changes"
+    echo "Files:"
+    echo "$STAGED_FILES" | grep "\.env"
+    exit 1
+fi
+
+# Check for common secret patterns in staged files
+SECRET_PATTERNS=(
+    "API_KEY"
+    "APIKEY"
+    "SECRET"
+    "TOKEN"
+    "PASSWORD"
+    "PRIVATE_KEY"
+    "AWS_ACCESS_KEY"
+    "AWS_SECRET"
+    "CLIENT_SECRET"
+    "AGORA_APP_ID"
+    "AGORA_APP_CERTIFICATE"
+)
+
+for file in $STAGED_FILES; do
+    # Skip binary files and deleted files
+    if [ -f "$file" ]; then
+        for pattern in "${SECRET_PATTERNS[@]}"; do
+            # Look for pattern followed by = and what looks like a real value (not empty, not placeholder)
+            if grep -qE "${pattern}\s*=\s*['\"]?[a-zA-Z0-9+/]{16,}" "$file"; then
+                echo "❌ Commit rejected: Potential secret detected in $file"
+                echo "Pattern matched: $pattern"
+                echo "Please review the file and remove any API keys or secrets"
+                exit 1
+            fi
+        done
+    fi
+done
+
+# Run ESLint on staged TypeScript/JavaScript files
+TS_FILES=$(echo "$STAGED_FILES" | grep -E '\.(ts|tsx|js|jsx)$')
+
+if [ -n "$TS_FILES" ]; then
+    echo "Running ESLint on staged files..."
+
+    # Check if we're in the workspace root or a package
+    if [ -f "pnpm-workspace.yaml" ]; then
+        # Run from workspace root
+        pnpm run lint:check 2>/dev/null || {
+            # Fallback: run eslint directly on each file
+            for file in $TS_FILES; do
+                npx eslint "$file" || exit 1
+            done
+        }
+    else
+        # Run eslint directly
+        for file in $TS_FILES; do
+            npx eslint "$file" || exit 1
+        done
+    fi
+
+    if [ $? -ne 0 ]; then
+        echo "❌ Commit rejected: ESLint errors found"
+        echo "Fix the errors and try again"
+        exit 1
+    fi
+fi
+
+echo "✅ Pre-commit checks passed"
+exit 0
+EOF
+
+chmod +x .git/hooks/pre-commit
 ```
 
 ## Developer Setup and Best Practices
