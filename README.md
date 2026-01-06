@@ -48,27 +48,48 @@ chmod +x .git/hooks/commit-msg
 ```
 
 ### pre-commit Hook
-Runs lint checks and scans for secrets before allowing commits.
+Runs lint and format checks for multiple languages (TypeScript, JavaScript, Python, JSON, Markdown, CSS) plus security scans.
+
+**Prerequisites:**
+- JavaScript/TypeScript: `pnpm install` (installs ESLint, Prettier)
+- Python: `pip install black ruff` (optional, will warn if missing)
 
 ```bash
 cat > .git/hooks/pre-commit << 'EOF'
 #!/bin/bash
-# Git hook to run lint and check for secrets before commit
+# Git hook to run lint, format checks, and security scans before commit
 
 echo "Running pre-commit checks..."
 
 # Get list of staged files
 STAGED_FILES=$(git diff --cached --name-only --diff-filter=ACM)
 
-# Check for .env files
-if echo "$STAGED_FILES" | grep -q "\.env"; then
-    echo "❌ Commit rejected: .env file detected in staged changes"
-    echo "Files:"
-    echo "$STAGED_FILES" | grep "\.env"
-    exit 1
+# Exit early if no files staged
+if [ -z "$STAGED_FILES" ]; then
+    echo "No files staged for commit"
+    exit 0
 fi
 
-# Check for common secret patterns in staged files
+# Track if any checks fail
+CHECKS_FAILED=0
+
+# ============================================================================
+# SECURITY CHECKS
+# ============================================================================
+
+echo "→ Checking for .env files..."
+# Exclude .env.example files - only block actual .env files
+if echo "$STAGED_FILES" | grep -E "\.env$|\.env\."; then
+    FORBIDDEN_ENV_FILES=$(echo "$STAGED_FILES" | grep -E "\.env$|\.env\." | grep -v "\.env\.example$")
+    if [ -n "$FORBIDDEN_ENV_FILES" ]; then
+        echo "❌ Commit rejected: .env file detected in staged changes"
+        echo "Files:"
+        echo "$FORBIDDEN_ENV_FILES"
+        exit 1
+    fi
+fi
+
+echo "→ Scanning for secrets..."
 SECRET_PATTERNS=(
     "API_KEY"
     "APIKEY"
@@ -87,7 +108,7 @@ for file in $STAGED_FILES; do
     # Skip binary files and deleted files
     if [ -f "$file" ]; then
         for pattern in "${SECRET_PATTERNS[@]}"; do
-            # Look for pattern followed by = and what looks like a real value (not empty, not placeholder)
+            # Look for pattern followed by = and what looks like a real value
             if grep -qE "${pattern}\s*=\s*['\"]?[a-zA-Z0-9+/]{16,}" "$file"; then
                 echo "❌ Commit rejected: Potential secret detected in $file"
                 echo "Pattern matched: $pattern"
@@ -98,41 +119,138 @@ for file in $STAGED_FILES; do
     fi
 done
 
-# Run ESLint on staged TypeScript/JavaScript files
-TS_FILES=$(echo "$STAGED_FILES" | grep -E '\.(ts|tsx|js|jsx)$')
+# ============================================================================
+# JAVASCRIPT/TYPESCRIPT CHECKS
+# ============================================================================
+
+TS_FILES=$(echo "$STAGED_FILES" | grep -E '\.(ts|tsx|js|jsx)$' || true)
 
 if [ -n "$TS_FILES" ]; then
-    echo "Running ESLint on staged files..."
+    echo "→ Running ESLint on TypeScript/JavaScript files..."
 
-    # Check if we're in the workspace root or a package
-    if [ -f "pnpm-workspace.yaml" ]; then
-        # Run from workspace root
-        pnpm run lint:check 2>/dev/null || {
-            # Fallback: run eslint directly on each file
-            for file in $TS_FILES; do
-                npx eslint "$file" || exit 1
-            done
-        }
-    else
-        # Run eslint directly
-        for file in $TS_FILES; do
-            npx eslint "$file" || exit 1
-        done
+    # Run ESLint on each staged file
+    for file in $TS_FILES; do
+        if ! npx eslint "$file" 2>/dev/null; then
+            echo "❌ ESLint failed for: $file"
+            CHECKS_FAILED=1
+        fi
+    done
+
+    if [ $CHECKS_FAILED -eq 1 ]; then
+        echo "❌ ESLint errors found. Run 'pnpm lint:fix' to auto-fix"
+        exit 1
     fi
 
-    if [ $? -ne 0 ]; then
-        echo "❌ Commit rejected: ESLint errors found"
-        echo "Fix the errors and try again"
+    echo "→ Running Prettier check on TypeScript/JavaScript files..."
+    for file in $TS_FILES; do
+        if ! npx prettier --check "$file" 2>/dev/null; then
+            echo "❌ Prettier formatting issues in: $file"
+            CHECKS_FAILED=1
+        fi
+    done
+
+    if [ $CHECKS_FAILED -eq 1 ]; then
+        echo "❌ Formatting errors found. Run 'pnpm format' to auto-fix"
         exit 1
     fi
 fi
 
-echo "✅ Pre-commit checks passed"
-exit 0
+# ============================================================================
+# PYTHON CHECKS
+# ============================================================================
+
+PY_FILES=$(echo "$STAGED_FILES" | grep '\.py$' || true)
+
+if [ -n "$PY_FILES" ]; then
+    # Check if ruff is installed
+    if command -v ruff &> /dev/null; then
+        echo "→ Running ruff on Python files..."
+
+        for file in $PY_FILES; do
+            if ! ruff check "$file" 2>/dev/null; then
+                echo "❌ Ruff errors in: $file"
+                CHECKS_FAILED=1
+            fi
+        done
+
+        if [ $CHECKS_FAILED -eq 1 ]; then
+            echo "❌ Python lint errors found. Run 'pnpm lint:py:fix' to auto-fix"
+            exit 1
+        fi
+    else
+        echo "⚠️  ruff not found - skipping Python lint (install: pip install ruff)"
+    fi
+
+    # Check if black is installed
+    if command -v black &> /dev/null; then
+        echo "→ Running black check on Python files..."
+
+        for file in $PY_FILES; do
+            if ! black --check "$file" 2>/dev/null; then
+                echo "❌ Black formatting issues in: $file"
+                CHECKS_FAILED=1
+            fi
+        done
+
+        if [ $CHECKS_FAILED -eq 1 ]; then
+            echo "❌ Python formatting errors found. Run 'pnpm format:py' to auto-fix"
+            exit 1
+        fi
+    else
+        echo "⚠️  black not found - skipping Python format check (install: pip install black)"
+    fi
+fi
+
+# ============================================================================
+# JSON/MARKDOWN/CSS CHECKS
+# ============================================================================
+
+OTHER_FILES=$(echo "$STAGED_FILES" | grep -E '\.(json|md|css|scss)$' || true)
+
+if [ -n "$OTHER_FILES" ]; then
+    echo "→ Running Prettier check on JSON/Markdown/CSS files..."
+
+    for file in $OTHER_FILES; do
+        if ! npx prettier --check "$file" 2>/dev/null; then
+            echo "❌ Prettier formatting issues in: $file"
+            CHECKS_FAILED=1
+        fi
+    done
+
+    if [ $CHECKS_FAILED -eq 1 ]; then
+        echo "❌ Formatting errors found. Run 'pnpm format' to auto-fix"
+        exit 1
+    fi
+fi
+
+# ============================================================================
+# FINAL RESULT
+# ============================================================================
+
+if [ $CHECKS_FAILED -eq 0 ]; then
+    echo "✅ All pre-commit checks passed!"
+    exit 0
+else
+    echo "❌ Pre-commit checks failed - please fix the errors above"
+    exit 1
+fi
 EOF
 
 chmod +x .git/hooks/pre-commit
 ```
+
+**Supported Languages:**
+- **JavaScript/TypeScript**: ESLint + Prettier
+- **Python**: ruff (linting) + black (formatting)
+- **JSON/Markdown/CSS**: Prettier
+
+**Auto-fix Commands:**
+- `pnpm lint:fix` - Fix JS/TS lint errors
+- `pnpm format` - Format JS/TS/JSON/MD/CSS files
+- `pnpm lint:py:fix` - Fix Python lint errors
+- `pnpm format:py` - Format Python files
+- `pnpm format:all` - Format all languages
+- `pnpm lint:all` - Lint all languages
 
 ## Developer Setup and Best Practices
 
