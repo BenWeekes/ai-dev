@@ -1007,7 +1007,7 @@ Create files one at a time:
 | File | Level | Required? | Purpose |
 |------|-------|----------|---------|
 | `AGENTS.md` (repo root) | — | **Required** | Universal AI entry point |
-| `CLAUDE.md` (repo root) | — | Optional | Thin redirect to AGENTS.md |
+| `CLAUDE.md` (repo root) | — | Optional | Loading instructions + AGENTS.md reference |
 | `docs/ai/L0_repo_card.md` | L0 | **Required** | Identity + L1 index |
 | `docs/ai/L1_operator_pack/01_setup.md` | L1 | **Required** | Environment setup, quick commands |
 | `docs/ai/L1_operator_pack/02_architecture.md` | L1 | **Required** | System design overview |
