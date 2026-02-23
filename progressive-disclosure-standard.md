@@ -2,9 +2,11 @@
 
 ## Enterprise Standard for Self-Describing Git Repositories
 
-**Version:** 1.1
+**Version:** 1.2
 **Status:** Active
 **Last Updated:** 2026-02-23
+
+> **Upgrading from a previous version?** Re-run the generation prompt (Section 6) against your repo. The prompt embeds the current standard — generated output will conform to the latest structure. No manual migration steps are needed unless the L1 file set changes (it hasn't since v1.0).
 
 ---
 
@@ -22,8 +24,9 @@
   - [4.2 File Naming Rules](#42-file-naming-rules)
   - [4.3 Linking Patterns](#43-linking-patterns)
   - [4.4 Content Density Targets](#44-content-density-targets)
-  - [4.5 Freshness and Maintenance](#45-freshness-and-maintenance)
-  - [4.6 AGENTS.md and CLAUDE.md Integration](#46-agentsmd-and-claudemd-integration)
+  - [4.5 Anti-Patterns](#45-anti-patterns)
+  - [4.6 Freshness and Maintenance](#46-freshness-and-maintenance)
+  - [4.7 AGENTS.md and CLAUDE.md Integration](#47-agentsmd-and-claudemd-integration)
 - [5. Specializing for Repo Types](#5-specializing-for-repo-types)
   - [5.1 API Service / Backend](#51-api-service--backend)
   - [5.2 Frontend Application](#52-frontend-application)
@@ -157,16 +160,14 @@ That's it. L0 is lean by design. Everything else lives in L1.
 
 #### Why L0 Is Minimal
 
-The previous version of this standard included Core Files Table, Task Routing Table, Critical Gotchas, and Quick Commands in L0. These have been moved to L1 where they belong:
+L0 contains only identity and an index because agents load all L1 upfront. There's no need for routing tables, gotcha summaries, or quick commands in L0 when the total L1 cost is only ~3,000–4,500 tokens. Detailed content lives where it naturally belongs:
 
-| Content | Now Lives In |
-|---------|-------------|
+| Content | Lives In |
+|---------|---------|
 | Core file listings | `03_code_map.md` |
 | Quick commands | `01_setup.md` |
 | Gotchas | `07_gotchas.md` |
-| Task-based navigation | Agent loads all L1 upfront — no routing needed |
-
-The agent loads all 7 L1 files upfront — there's no need for a routing table when the total L1 cost is only ~3,000–4,500 tokens. L0 exists to identify the repo and provide a table of contents, not to gate access.
+| Task-based navigation | Not needed — agent already has all L1 |
 
 #### Identity Block — Enterprise Discovery
 
@@ -331,8 +332,8 @@ Built on the `ws` library with a pub/sub pattern internally.
 
 - **Redis pub/sub does not persist messages.** Missed events during disconnect
   require REST API polling to catch up.
-- **Topic filters use glob syntax, not regex.** `call.*` matches `call.initiated`
-  but not `call.state.changed` (use `call.**`).
+- **EventBus topic filters use glob syntax, not regex.** `call.*` matches
+  `call.initiated` but not `call.state.changed` (use `call.**` for nested topics).
 
 ## See Also
 
@@ -422,7 +423,21 @@ All links between progressive disclosure files use **relative paths**:
 | Total L1 lines (all 7 files) | 700–1,200 | 1,400 |
 | Total L0 + L1 lines | 730–1,250 | 1,460 |
 
-### 4.5 Freshness and Maintenance
+### 4.5 Anti-Patterns
+
+Do NOT put any of the following in `docs/ai/`:
+
+| Anti-Pattern | Why | Where It Belongs |
+|-------------|-----|-----------------|
+| Duplicating the README | Creates two sources of truth that drift apart | README stays at repo root; L1 is structured differently |
+| Auto-generated API docs (Swagger/TypeDoc output) | Goes stale, inflates token count, already available from source | Link from `06_interfaces.md` with `[EXTERNAL]` marker |
+| Operational runbooks (incident response, on-call playbooks) | Too long, changes frequently, audience is ops not developers | Wiki or runbook system; link from `07_gotchas.md` if critical |
+| Full database migration history | Unbounded growth, low signal | `06_interfaces.md` covers current schema; link to migration dir |
+| Commented-out "previous versions" of docs | Noise; git has history | Delete and rely on version control |
+
+**Rule of thumb:** If content is auto-generated, unbounded in growth, or has a better canonical home elsewhere — link to it, don't copy it.
+
+### 4.6 Freshness and Maintenance
 
 #### When to Update
 
@@ -441,18 +456,29 @@ All links between progressive disclosure files use **relative paths**:
 
 #### CI Check (Recommended)
 
+Check freshness per-file so a single update doesn't reset the clock for everything:
+
 ```yaml
 # GitHub Actions
 - name: Check docs freshness
   run: |
-    last_modified=$(git log -1 --format="%ct" -- docs/ai/)
-    threshold=$(date -d "90 days ago" +%s)
-    if [ "$last_modified" -lt "$threshold" ]; then
-      echo "::warning::docs/ai/ has not been updated in over 90 days"
+    threshold=$(( $(date +%s) - 90 * 86400 ))
+    stale=""
+    for f in docs/ai/L0_repo_card.md docs/ai/L1_operator_pack/*.md; do
+      [ -f "$f" ] || continue
+      last=$(git log -1 --format="%ct" -- "$f" 2>/dev/null || echo 0)
+      if [ "$last" -lt "$threshold" ]; then
+        stale="$stale $f"
+      fi
+    done
+    if [ -n "$stale" ]; then
+      echo "::warning::Stale docs (>90 days):$stale"
     fi
 ```
 
-### 4.6 AGENTS.md and CLAUDE.md Integration
+> **Note:** Uses POSIX-compatible `date +%s` arithmetic instead of GNU-only `date -d`. Works on both Linux and macOS CI runners.
+
+### 4.7 AGENTS.md and CLAUDE.md Integration
 
 Every repo should have an `AGENTS.md` at the root that serves as the **universal entry point for all AI tools**. `CLAUDE.md` is a thin redirect.
 
@@ -484,14 +510,24 @@ agents work efficiently. Documentation is structured in three levels under
 
 #### CLAUDE.md Template
 
+Claude Code reads `CLAUDE.md` into the system prompt automatically. A one-line redirect would force an extra tool call to read `AGENTS.md`. Instead, duplicate the core loading instructions so Claude Code has them immediately:
+
 ```markdown
-Read AGENTS.md for instructions on working with this repository.
+# Repository Documentation
+
+This repo uses progressive disclosure docs under `docs/ai/`.
+
+1. Read [docs/ai/L0_repo_card.md](docs/ai/L0_repo_card.md) to identify the repo.
+2. Load ALL 7 files in `docs/ai/L1_operator_pack/` (~3,000–4,500 tokens total).
+3. Follow L2 deep dive links only when L1 isn't detailed enough for your task.
+
+See AGENTS.md for the full explanation.
 ```
 
 #### Why This Pattern
 
 - **`AGENTS.md`** is the universal standard (Linux Foundation). All AI tools will look for it.
-- **`CLAUDE.md`** is Claude Code-specific. By making it a redirect, we avoid maintaining two copies.
+- **`CLAUDE.md`** duplicates the 3-step loading instructions so Claude Code doesn't waste a tool call reading `AGENTS.md`. The duplication is 5 lines — worth the saved round-trip.
 - **Other tools** (Cursor, Copilot, Cody, etc.) can all read `AGENTS.md`.
 - **Future enterprise map:** A central system can scrape all `AGENTS.md` files to discover repos, then follow the link to each L0 for Identity Block metadata.
 
@@ -704,23 +740,49 @@ Inbound SIP INVITE → SIP Parser → Route Matcher → Call Handler → State M
 
 #### Monorepo
 
-The root gets a **meta L0** that routes to package-level `docs/ai/` trees:
+The root gets a **meta L0 + full L1** that covers workspace-level concerns. Each package gets its own `docs/ai/` tree. Only the root has `AGENTS.md`.
 
 ```
 repo-root/
-├── AGENTS.md
+├── AGENTS.md                              # Single entry point for the whole monorepo
 ├── docs/ai/
-│   ├── L0_repo_card.md           # Meta repo card
+│   ├── L0_repo_card.md                    # Meta repo card (type: monorepo)
 │   └── L1_operator_pack/
-│       ├── 01_setup.md           # Root workspace tooling
-│       ├── 03_code_map.md        # Package map and dependency graph
-│       └── ...
+│       ├── 01_setup.md                    # Root workspace tooling, install, build-all
+│       ├── 02_architecture.md             # Package dependency graph, shared patterns
+│       ├── 03_code_map.md                 # Package map with paths + one-liners
+│       ├── 04_conventions.md              # Shared conventions across packages
+│       ├── 05_workflows.md               # "Add a package," "Run affected tests"
+│       ├── 06_interfaces.md               # Cross-package contracts, shared types
+│       ├── 07_gotchas.md                  # Workspace-level gotchas (hoisting, linking)
+│       └── deep_dives/
 ├── packages/
-│   ├── api/docs/ai/              # Package-level progressive disclosure
+│   ├── api/docs/ai/                       # Package-level L0 + L1 + L2
+│   │   ├── L0_repo_card.md
+│   │   └── L1_operator_pack/
 │   └── web/docs/ai/
 ```
 
-The root L0's L1 index includes a note: "For package-specific docs, see `packages/[name]/docs/ai/L0_repo_card.md`."
+**Monorepo Loading Protocol:**
+
+1. **Always start at root.** Load root L0 → load root L1 (workspace setup, package map, shared conventions).
+2. **Identify the target package** from root `03_code_map.md` which lists all packages with paths.
+3. **Load the package's L0 + L1.** Each package has its own full progressive disclosure tree.
+4. **Package-level docs do NOT get their own `AGENTS.md`.** The root `AGENTS.md` explains the two-tier loading model.
+
+**Root `03_code_map.md` must include a package index:**
+
+```markdown
+## Packages
+
+| Package | Path | Type | Description |
+|---------|------|------|-------------|
+| api | `packages/api/` | api-service | REST API backend |
+| web | `packages/web/` | frontend-app | React SPA |
+| shared | `packages/shared/` | sdk-library | Shared types and utilities |
+
+Each package has its own `docs/ai/` tree. Load `packages/[name]/docs/ai/L0_repo_card.md` to start.
+```
 
 #### Data Pipeline
 
