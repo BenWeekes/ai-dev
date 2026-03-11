@@ -40,7 +40,7 @@
   - [7.3 Review Gates](#73-review-gates)
 - [8. Testing Strategy](#8-testing-strategy)
   - [8.1 Testing Layers](#81-testing-layers)
-  - [8.2 TDD Enforcement](#82-tdd-enforcement)
+  - [8.2 Test Driven Development (TDD) Enforcement](#82-test-driven-development-tdd-enforcement)
   - [8.3 The Completion Rule](#83-the-completion-rule)
   - [8.4 Contract Testing](#84-contract-testing)
   - [8.5 CUA End-to-End Testing](#85-cua-end-to-end-testing)
@@ -55,6 +55,8 @@
 ## 1. Quick-Start Summary
 
 This proposal defines a **multi-agent architecture** for coordinating AI coding work across multiple git repositories. It builds on the [Progressive Disclosure Documentation Standard](progressive-disclosure-standard.md), which makes individual repos self-describing. This document addresses the next layer: how agents collaborate when a feature spans multiple codebases.
+
+**Core guarantee:** All agent work is governed by **Test Driven Development** — tests are written and verified failing before implementation, and **all tests must pass or the task is not complete** (Section 8.2, 8.3).
 
 ### Agent Tiers
 
@@ -96,6 +98,7 @@ Cross-repo features follow a predictable lifecycle: understand the system → pl
 - **Interface-driven** — Cross-repo dependencies are expressed as contracts agreed upon before implementation.
 - **Progressive disclosure integration** — Agents bootstrap their understanding of each repo from L0/L1 docs, not raw file trees.
 - **Human-in-the-loop** — Review gates at plan, interface agreement, and integration phases.
+- **Test Driven Development (TDD)** — Tests are written and verified failing before implementation code. All tests must pass or the task is not complete. No exceptions.
 - **Tool agnosticism** — The architecture works with any AI coding tool, not just Claude Code.
 
 ---
@@ -611,7 +614,7 @@ Testing follows a pyramid structure, with each layer owned by a different agent 
 | E2E Tests (automated) | Running system, scripted flows | Repo Agent (T1) for test code | Phase 5 — Integration | Playwright, Cypress |
 | E2E Tests (CUA) | Running system, exploratory | CUA (T3) | Phase 6 — E2E Validation | Browser interaction |
 
-### 8.2 TDD Enforcement
+### 8.2 Test Driven Development (TDD) Enforcement
 
 Stating "write tests first" is not a mechanism. This section defines the concrete sequence a Repo Agent MUST follow and the checkpoints that enforce it.
 
