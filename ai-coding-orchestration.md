@@ -40,8 +40,10 @@
   - [7.3 Review Gates](#73-review-gates)
 - [8. Testing Strategy](#8-testing-strategy)
   - [8.1 Testing Layers](#81-testing-layers)
-  - [8.2 Contract Testing](#82-contract-testing)
-  - [8.3 CUA End-to-End Testing](#83-cua-end-to-end-testing)
+  - [8.2 TDD Enforcement](#82-tdd-enforcement)
+  - [8.3 The Completion Rule](#83-the-completion-rule)
+  - [8.4 Contract Testing](#84-contract-testing)
+  - [8.5 CUA End-to-End Testing](#85-cua-end-to-end-testing)
 - [9. Proof of Concept](#9-proof-of-concept)
   - [9.1 Scenario](#91-scenario)
   - [9.2 Step-by-Step Walkthrough](#92-step-by-step-walkthrough)
@@ -609,18 +611,175 @@ Testing follows a pyramid structure, with each layer owned by a different agent 
 | E2E Tests (automated) | Running system, scripted flows | Repo Agent (T1) for test code | Phase 5 — Integration | Playwright, Cypress |
 | E2E Tests (CUA) | Running system, exploratory | CUA (T3) | Phase 6 — E2E Validation | Browser interaction |
 
+### 8.2 TDD Enforcement
+
+Stating "write tests first" is not a mechanism. This section defines the concrete sequence a Repo Agent MUST follow and the checkpoints that enforce it.
+
+#### The TDD Loop
+
+Every Repo Agent follows this exact sequence for each unit of work. The sequence is not advisory — it is the implementation protocol.
+
+```
+    ┌───────────────────────────────────────────────────┐
+    │              REPO AGENT TDD LOOP                  │
+    │                                                   │
+    │   Step 1: READ acceptance criteria from Task Spec │
+    │                     │                             │
+    │                     ▼                             │
+    │   Step 2: WRITE test(s) that encode the criteria  │
+    │                     │                             │
+    │                     ▼                             │
+    │   Step 3: RUN tests ── verify they FAIL           │
+    │           (if tests pass, they test nothing)      │
+    │                     │                             │
+    │                     ▼                             │
+    │   Step 4: WRITE implementation code               │
+    │                     │                             │
+    │                     ▼                             │
+    │   Step 5: RUN tests ── do they pass?              │
+    │              │                │                   │
+    │             YES              NO                   │
+    │              │                │                   │
+    │              ▼                ▼                   │
+    │   Step 6: COMMIT      Step 5a: FIX code           │
+    │           (green)       (NOT the test)            │
+    │              │                │                   │
+    │              │                └──── back to ──┐   │
+    │              │                     Step 5     │   │
+    │              ▼                                │   │
+    │   Step 7: NEXT unit of work                   │   │
+    │           or REPORT complete                  │   │
+    └───────────────────────────────────────────────┘
+```
+
+#### Enforcement Rules
+
+| Rule | What It Means | Why It Matters |
+|------|--------------|---------------|
+| Tests before code | No implementation file is created or modified until at least one failing test exists for the change | Prevents "code first, test after" where tests become rubber stamps |
+| Red before green | After writing a test, the agent MUST run it and confirm failure before writing implementation | A test that passes before implementation is written is testing nothing |
+| Fix code, not tests | When a test fails after implementation, the agent fixes the implementation — never the test (unless the test itself has a bug) | Prevents agents from weakening tests to match broken code |
+| No skipping tests | An agent cannot mark a test as `.skip`, `.todo`, or `pending` to make the suite pass | Skipped tests are invisible failures |
+| Commit on green only | The agent commits only when all tests pass. No commits with known failures. | Every commit in the history is a working state |
+
 #### TDD at Every Layer
 
-Tests are written BEFORE implementation code at every layer:
+| Layer | Write First | Then Implement | Red-Green Verified By |
+|-------|------------|---------------|----------------------|
+| Unit | Test cases from acceptance criteria | Function/module code | Repo Agent runs test runner |
+| Integration | Test with mocked dependencies | Wiring and integration code | Repo Agent runs test runner |
+| Contract | Contract spec (provider and consumer) | API endpoint / SDK method | Both Repo Agents run contract tests |
+| E2E | Test scenario document | Feature code across repos | CUA or automated E2E runner |
 
-| Layer | Write First | Then Implement |
-|-------|------------|---------------|
-| Unit | Test cases from acceptance criteria | Function/module code |
-| Integration | Test with mocked dependencies | Wiring and integration code |
-| Contract | Contract spec (provider and consumer) | API endpoint / SDK method |
-| E2E | Test scenario document | Feature code across repos |
+> **Why enforce red-before-green?** AI agents are prone to writing tests that mirror their implementation rather than independently encoding the requirement. Running the test before writing code proves the test is actually checking something. A test that passes against an empty function is worthless.
 
-### 8.2 Contract Testing
+### 8.3 The Completion Rule
+
+This is the fail-safe. It defines when work is "done" and what happens when it isn't.
+
+#### The Rule
+
+> **A task is not complete until all tests pass. There are no exceptions.**
+
+This applies at every level:
+
+| Level | Rule | Enforced By |
+|-------|------|------------|
+| Repo Agent task | ALL unit + integration tests pass (0 failures, 0 skipped) | Repo Agent cannot report `status: complete` otherwise |
+| Contract testing | BOTH provider and consumer contract tests pass | System Agent rejects integration if either fails |
+| Integration | Cross-repo integration tests pass | System Agent blocks Phase 6 |
+| E2E | All CUA test scenarios pass | System Agent blocks Phase 7 (deploy) |
+| Epic | ALL of the above, across ALL repos | System Agent cannot close the epic |
+
+#### Status Reporting Enforcement
+
+The status update payload (Section 5.2) includes test counts. The completion rule adds hard constraints:
+
+```yaml
+payload:
+  status: "complete"          # ONLY valid when failed == 0 AND skipped == 0
+  test_result:
+    passed: 12
+    failed: 0                 # Must be 0 for status: complete
+    skipped: 0                # Must be 0 for status: complete
+    total: 12                 # Must equal passed + failed + skipped
+```
+
+**Illegal states — the System Agent MUST reject these:**
+
+```yaml
+# REJECTED: failed > 0 with status complete
+payload:
+  status: "complete"
+  test_result: { passed: 10, failed: 2, skipped: 0 }
+
+# REJECTED: skipped > 0 with status complete
+payload:
+  status: "complete"
+  test_result: { passed: 11, failed: 0, skipped: 1 }
+
+# REJECTED: total doesn't match
+payload:
+  status: "complete"
+  test_result: { passed: 12, failed: 0, skipped: 0, total: 15 }
+```
+
+#### The Fix Loop
+
+When tests fail, the Repo Agent enters a fix loop. This is not a retry — it is a structured debugging cycle with a bound.
+
+```
+    Tests fail
+        │
+        ▼
+    Attempt 1: Read failure output → diagnose → fix code → re-run
+        │
+      Pass? ──YES──▶ Report complete
+        │
+        NO
+        │
+    Attempt 2: Read failure output → diagnose → fix code → re-run
+        │
+      Pass? ──YES──▶ Report complete
+        │
+        NO
+        │
+    Attempt 3: Read failure output → diagnose → fix code → re-run
+        │
+      Pass? ──YES──▶ Report complete
+        │
+        NO
+        │
+    Report: status: "blocked"
+    Include: failure output, diagnosis, what was tried
+    Escalate to: System Agent → human
+```
+
+#### Fix Loop Rules
+
+| Rule | Description |
+|------|-------------|
+| Maximum 3 fix attempts | After 3 failed fix cycles, the agent MUST stop and report `status: blocked` |
+| Fix code, not tests | The agent modifies implementation code. Tests are only changed if the agent can articulate a specific bug in the test itself (not "the test doesn't match my code"). |
+| Include diagnostics | The `blocked` status MUST include: test failure output, the agent's diagnosis of root cause, and what was attempted |
+| No workarounds | The agent cannot comment out code, add `try/catch` blocks that swallow errors, or weaken assertions to make tests pass |
+| Human escalation | A `blocked` status always reaches a human. The System Agent cannot auto-resolve it. |
+
+> **Why 3 attempts?** Empirically, if an AI agent can't fix a test failure in 3 targeted attempts with failure output, it's either misunderstanding the requirement or hitting a genuine design issue. Both need human input. More retries waste tokens and risk the agent drifting further from the correct solution.
+
+#### Phase Gate Enforcement
+
+The Completion Rule integrates with Section 7.3 Review Gates:
+
+| Gate | Completion Rule Check |
+|------|----------------------|
+| Code Review (after Phase 4) | System Agent verifies: every Repo Agent reported `status: complete` with `failed: 0, skipped: 0`. If any repo is `blocked`, the gate does not open. |
+| Integration Review (after Phase 5) | System Agent verifies: all contract tests pass across all repo pairs. All integration tests pass. |
+| E2E Review (after Phase 6) | System Agent verifies: all CUA scenarios report pass. |
+
+**The epic cannot advance to the next phase while any test is failing.** There is no override. If a test is genuinely wrong, a human must approve removing or rewriting it — the agent cannot do so unilaterally.
+
+### 8.4 Contract Testing
 
 Contract testing ensures that two repos agree on their shared interface. The provider repo and consumer repo each write tests against the same contract spec.
 
@@ -672,7 +831,7 @@ contract:
             error: { code: "USER_NOT_FOUND", message: "string" }
 ```
 
-### 8.3 CUA End-to-End Testing
+### 8.5 CUA End-to-End Testing
 
 CUA testing validates the integrated system from a user's perspective. After all repos have been implemented and contract tests pass, CUA interacts with the running system through a browser.
 
@@ -786,39 +945,71 @@ Output: Contract spec (user-profile-api.contract.yaml)
 
 **→ GATE: Human reviews contract**
 
-#### Step 4: Repo Agents — Implementation (Parallel)
+#### Step 4: Repo Agents — Implementation (Parallel, TDD Enforced)
 
 ```
 demo-api Repo Agent:
   1. Loads L0 + all L1 (PD standard)
   2. Reads Task Spec + contract
-  3. Writes test: GET /v1/users/:id returns expected shape
-  4. Implements endpoint
-  5. Writes provider contract test
-  6. Runs all tests → pass
-  7. Reports: complete
+  ── TDD Loop: Unit tests ──
+  3. Writes test: GET /v1/users/:id returns { id, name, email }
+  4. Writes test: GET /v1/users/:id returns 404 for unknown ID
+  5. Runs tests → both FAIL (red) ✓ confirms tests check something
+  6. Implements endpoint
+  7. Runs tests → both PASS (green) ✓
+  ── TDD Loop: Contract tests ──
+  8. Writes provider contract test against contract spec
+  9. Runs contract test → FAIL (red) ✓
+  10. (Already implemented — expects pass)
+  11. Runs contract test → PASS (green) ✓
+  ── Completion check ──
+  12. Runs full test suite: 4 passed, 0 failed, 0 skipped
+  13. Reports: status: complete, test_result: { passed: 4, failed: 0, skipped: 0 }
 
-demo-sdk Repo Agent (can start contract test immediately):
+demo-sdk Repo Agent:
   1. Loads L0 + all L1 (PD standard)
   2. Reads Task Spec + contract
-  3. Writes test: getUser(id) returns typed User
-  4. Writes consumer contract test (against contract spec)
-  5. Implements getUser method
-  6. Runs all tests → pass (mock server for contract)
-  7. Reports: complete
+  ── TDD Loop: Unit tests ──
+  3. Writes test: getUser(validId) returns typed User
+  4. Writes test: getUser(unknownId) throws UserNotFoundError
+  5. Runs tests → both FAIL (red) ✓
+  6. Implements getUser method
+  7. Runs tests → 1 PASS, 1 FAIL
+  ── Fix Loop (attempt 1) ──
+  8. Reads failure: error mapping doesn't handle 404
+  9. Fixes error handling in getUser
+  10. Runs tests → both PASS (green) ✓
+  ── TDD Loop: Contract tests ──
+  11. Writes consumer contract test against contract spec
+  12. Runs contract test → FAIL (red) ✓
+  13. (Already implemented — expects pass)
+  14. Runs contract test → PASS (green, mock server) ✓
+  ── Completion check ──
+  15. Runs full test suite: 5 passed, 0 failed, 0 skipped
+  16. Reports: status: complete, test_result: { passed: 5, failed: 0, skipped: 0 }
 ```
+
+**System Agent validates both status reports:** `failed == 0 AND skipped == 0` for both repos. Gate opens.
 
 **→ GATE: Human reviews PRs in both repos**
 
-#### Step 5: Integration
+#### Step 5: Integration (Completion Rule Enforced)
 
 ```
 System Agent:
-  1. Verifies both Repo Agents report complete
-  2. Runs contract tests: provider + consumer both pass
+  1. Checks status reports:
+     - demo-api: complete, { passed: 4, failed: 0, skipped: 0 } ✓
+     - demo-sdk: complete, { passed: 5, failed: 0, skipped: 0 } ✓
+  2. Runs cross-repo contract tests:
+     - Provider (demo-api) contract test: PASS ✓
+     - Consumer (demo-sdk) contract test: PASS ✓
   3. Coordinates integration test: SDK calls running API
-  4. Reports: integration verified
+     - getUser("valid-id") → { id, name, email } ✓
+     - getUser("unknown-id") → UserNotFoundError ✓
+  4. All tests green across all repos. Integration verified.
 ```
+
+**If any contract test failed:** System Agent reports `status: blocked`, identifies the mismatch (e.g., "provider returns `userName` but consumer expects `name`"), and assigns a fix task to the responsible Repo Agent. The gate does not open until re-run passes.
 
 **→ GATE: Human reviews integration results**
 
@@ -836,6 +1027,9 @@ For an API + SDK proof of concept, CUA testing may not apply (no browser UI). In
 | Repo Agents implement independently | No cross-repo file modifications |
 | Contract tests pass | Provider and consumer tests both green |
 | Integration test passes | SDK successfully calls running API |
+| TDD loop followed | Tests written and run (red) before implementation in both repos |
+| Completion rule enforced | No repo reports `complete` with `failed > 0` or `skipped > 0` |
+| Fix loop works | SDK agent hits a test failure, fixes it within 3 attempts, reports complete |
 | Human review gates function | System pauses at each gate, resumes on approval |
 | Total orchestration overhead | < 20% of total implementation time |
 
