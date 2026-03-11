@@ -1,89 +1,130 @@
-# Claude Code Developer Guide
+# AI-Assisted Development Guide
 
-## Install Claude Code on Ubuntu 
-```bash
-sudo apt update
-sudo apt install -y nodejs npm
-sudo npm install -g @anthropic-ai/claude-code
-```
+Practices and standards for working effectively with AI coding agents across repositories. Tool-agnostic — the principles here apply regardless of which AI coding tool you use.
 
-## Install Claude Code on Mac 
-```bash
-npm install -g @anthropic-ai/claude-code
-```
+---
 
-## Git Hooks for Code Quality
+## What's in This Repo
+
+| Document | What It Is | Start Here If... |
+|----------|-----------|-----------------|
+| [Progressive Disclosure Documentation Standard](progressive-disclosure-standard.md) | A three-level documentation architecture (L0/L1/L2) that makes any git repo self-describing for AI agents and humans. The foundation everything else builds on. | You want to make a single repo easier for AI agents to work with. |
+| [AI Coding Orchestration](ai-coding-orchestration.md) | A conceptual guide for coordinating AI agents across multiple repositories — agent tiers, epic lifecycle, cross-repo code review, contract testing. Builds on the PD standard. | You're thinking about how AI agents coordinate when a feature spans multiple repos. |
+
+**Reading order:** Start with the Progressive Disclosure standard. The orchestration guide assumes familiarity with its concepts (L0 Repo Cards, L1 Operator Packs, identity blocks).
+
+---
+
+## AI Coding Best Practices
+
+These apply to any AI coding tool. They're the habits that prevent AI-assisted development from creating more problems than it solves.
+
+### Review Every Change
+
+- **Before editing:** Have the agent show the planned changes and get your approval before it writes code.
+- **After editing:** Review the actual diff (`git diff`) before committing. Expand truncated output if needed.
+- **New files:** Review the entire file content before creation.
+- Never push code you haven't reviewed line by line.
+
+### Protect Sensitive Files
+
+AI coding agents can typically read all files in your project. Prevent access to secrets:
+
+- Block agent access to `.env`, `.env.local`, `.env.production`, and similar files.
+- Block `config/secrets.*`, `**/private_key.pem`, and any credentials files.
+- Most AI coding tools have a permissions or deny-list mechanism — use it.
+
+### Commit Hygiene
+
+- Commit each feature or logical change separately for easy rollback.
+- Handle git commits yourself — don't let the agent auto-commit without review.
+- Keep commit messages descriptive and lowercase (see git hooks below).
+
+### Make Repos Self-Describing
+
+AI agents work better when they can quickly understand a codebase. The [Progressive Disclosure Documentation Standard](progressive-disclosure-standard.md) provides a structured way to do this — a single Repo Card (L0) for orientation, an Operator Pack (L1) for working knowledge, and deep dives (L2) for complex areas.
+
+Even without adopting the full standard, a well-maintained README, clear directory structure, and documented conventions go a long way.
+
+---
+
+## Git Hooks
+
+These hooks enforce commit quality. They're language-aware and work across JavaScript/TypeScript, Python, JSON, Markdown, and CSS.
 
 ### commit-msg Hook
-Enforces commit message standards: blocks "Claude" mentions and enforces lowercase start.
+
+Enforces commit message standards: blocks AI tool name mentions, enforces lowercase start.
 
 ```bash
 cat > .git/hooks/commit-msg << 'EOF'
 #!/bin/bash
-# Git hook to validate commit messages
-
-# Read the commit message
 commit_msg=$(cat "$1")
 
-# Check for "claude" (case-insensitive)
 if echo "$commit_msg" | grep -iq "claude"; then
-    echo "❌ Commit rejected: Commit message contains 'claude'"
-    echo "Please remove references to Claude from your commit message."
+    echo "Commit rejected: message contains 'claude'"
     exit 1
 fi
 
-# Check that commit message starts with lowercase letter
 first_char=$(echo "$commit_msg" | head -c 1)
 if [[ "$first_char" =~ ^[A-Z]$ ]]; then
-    echo "❌ Commit rejected: Commit message must start with lowercase letter"
-    echo "Your message: $commit_msg"
+    echo "Commit rejected: message must start with lowercase letter"
     exit 1
 fi
 
-# Allow the commit
 exit 0
 EOF
-
 chmod +x .git/hooks/commit-msg
 ```
 
 ### pre-commit Hook
-Runs lint and format checks for multiple languages (TypeScript, JavaScript, Python, JSON, Markdown, CSS) plus security scans.
+
+Runs lint and format checks on staged files, plus security scans for secrets and `.env` files.
+
+**What it checks:**
+- **Security:** Blocks `.env` files and files containing potential secrets (API keys, tokens, passwords)
+- **JavaScript/TypeScript:** ESLint + Prettier
+- **Python:** ruff (linting) + black (formatting) — warns if not installed
+- **JSON/Markdown/CSS:** Prettier
 
 **Prerequisites:**
 - JavaScript/TypeScript: `pnpm install` (installs ESLint, Prettier)
-- Python: `pip install black ruff` (optional, will warn if missing)
+- Python: `pip install black ruff` (optional)
+
+**Auto-fix commands:**
+
+| Command | What It Fixes |
+|---------|--------------|
+| `pnpm lint:fix` | JS/TS lint errors |
+| `pnpm format` | JS/TS/JSON/MD/CSS formatting |
+| `pnpm lint:py:fix` | Python lint errors |
+| `pnpm format:py` | Python formatting |
+| `pnpm format:all` | All languages |
+| `pnpm lint:all` | All languages |
+
+<details>
+<summary>Full pre-commit hook script</summary>
 
 ```bash
 cat > .git/hooks/pre-commit << 'EOF'
 #!/bin/bash
-# Git hook to run lint, format checks, and security scans before commit
-
 echo "Running pre-commit checks..."
 
-# Get list of staged files
 STAGED_FILES=$(git diff --cached --name-only --diff-filter=ACM)
-
-# Exit early if no files staged
 if [ -z "$STAGED_FILES" ]; then
     echo "No files staged for commit"
     exit 0
 fi
 
-# Track if any checks fail
 CHECKS_FAILED=0
 
-# ============================================================================
-# SECURITY CHECKS
-# ============================================================================
+# --- Security checks ---
 
 echo "→ Checking for .env files..."
-# Exclude .env.example files - only block actual .env files
 if echo "$STAGED_FILES" | grep -E "\.env$|\.env\."; then
     FORBIDDEN_ENV_FILES=$(echo "$STAGED_FILES" | grep -E "\.env$|\.env\." | grep -v "\.env\.example$")
     if [ -n "$FORBIDDEN_ENV_FILES" ]; then
-        echo "❌ Commit rejected: .env file detected in staged changes"
-        echo "Files:"
+        echo "Commit rejected: .env file detected"
         echo "$FORBIDDEN_ENV_FILES"
         exit 1
     fi
@@ -91,243 +132,112 @@ fi
 
 echo "→ Scanning for secrets..."
 SECRET_PATTERNS=(
-    "API_KEY"
-    "APIKEY"
-    "SECRET"
-    "TOKEN"
-    "PASSWORD"
-    "PRIVATE_KEY"
-    "AWS_ACCESS_KEY"
-    "AWS_SECRET"
-    "CLIENT_SECRET"
-    "AGORA_APP_ID"
-    "AGORA_APP_CERTIFICATE"
+    "API_KEY" "APIKEY" "SECRET" "TOKEN" "PASSWORD"
+    "PRIVATE_KEY" "AWS_ACCESS_KEY" "AWS_SECRET"
+    "CLIENT_SECRET" "AGORA_APP_ID" "AGORA_APP_CERTIFICATE"
 )
-
 for file in $STAGED_FILES; do
-    # Skip binary files and deleted files
     if [ -f "$file" ]; then
         for pattern in "${SECRET_PATTERNS[@]}"; do
-            # Look for pattern followed by = and what looks like a real value
             if grep -qE "${pattern}\s*=\s*['\"]?[a-zA-Z0-9+/]{16,}" "$file"; then
-                echo "❌ Commit rejected: Potential secret detected in $file"
-                echo "Pattern matched: $pattern"
-                echo "Please review the file and remove any API keys or secrets"
+                echo "Commit rejected: potential secret in $file (matched: $pattern)"
                 exit 1
             fi
         done
     fi
 done
 
-# ============================================================================
-# JAVASCRIPT/TYPESCRIPT CHECKS
-# ============================================================================
+# --- JavaScript/TypeScript ---
 
 TS_FILES=$(echo "$STAGED_FILES" | grep -E '\.(ts|tsx|js|jsx)$' || true)
-
 if [ -n "$TS_FILES" ]; then
-    echo "→ Running ESLint on TypeScript/JavaScript files..."
-
-    # Run ESLint on each staged file
+    echo "→ Running ESLint..."
     for file in $TS_FILES; do
         if ! npx eslint "$file" 2>/dev/null; then
-            echo "❌ ESLint failed for: $file"
+            echo "ESLint failed: $file"
             CHECKS_FAILED=1
         fi
     done
-
     if [ $CHECKS_FAILED -eq 1 ]; then
-        echo "❌ ESLint errors found. Run 'pnpm lint:fix' to auto-fix"
+        echo "Run 'pnpm lint:fix' to auto-fix"
         exit 1
     fi
 
-    echo "→ Running Prettier check on TypeScript/JavaScript files..."
+    echo "→ Running Prettier..."
     for file in $TS_FILES; do
         if ! npx prettier --check "$file" 2>/dev/null; then
-            echo "❌ Prettier formatting issues in: $file"
+            echo "Prettier failed: $file"
             CHECKS_FAILED=1
         fi
     done
-
     if [ $CHECKS_FAILED -eq 1 ]; then
-        echo "❌ Formatting errors found. Run 'pnpm format' to auto-fix"
+        echo "Run 'pnpm format' to auto-fix"
         exit 1
     fi
 fi
 
-# ============================================================================
-# PYTHON CHECKS
-# ============================================================================
+# --- Python ---
 
 PY_FILES=$(echo "$STAGED_FILES" | grep '\.py$' || true)
-
 if [ -n "$PY_FILES" ]; then
-    # Check if ruff is installed
     if command -v ruff &> /dev/null; then
-        echo "→ Running ruff on Python files..."
-
+        echo "→ Running ruff..."
         for file in $PY_FILES; do
             if ! ruff check "$file" 2>/dev/null; then
-                echo "❌ Ruff errors in: $file"
                 CHECKS_FAILED=1
             fi
         done
-
         if [ $CHECKS_FAILED -eq 1 ]; then
-            echo "❌ Python lint errors found. Run 'pnpm lint:py:fix' to auto-fix"
+            echo "Run 'pnpm lint:py:fix' to auto-fix"
             exit 1
         fi
     else
-        echo "⚠️  ruff not found - skipping Python lint (install: pip install ruff)"
+        echo "ruff not found - skipping Python lint (install: pip install ruff)"
     fi
 
-    # Check if black is installed
     if command -v black &> /dev/null; then
-        echo "→ Running black check on Python files..."
-
+        echo "→ Running black..."
         for file in $PY_FILES; do
             if ! black --check "$file" 2>/dev/null; then
-                echo "❌ Black formatting issues in: $file"
                 CHECKS_FAILED=1
             fi
         done
-
         if [ $CHECKS_FAILED -eq 1 ]; then
-            echo "❌ Python formatting errors found. Run 'pnpm format:py' to auto-fix"
+            echo "Run 'pnpm format:py' to auto-fix"
             exit 1
         fi
     else
-        echo "⚠️  black not found - skipping Python format check (install: pip install black)"
+        echo "black not found - skipping Python format (install: pip install black)"
     fi
 fi
 
-# ============================================================================
-# JSON/MARKDOWN/CSS CHECKS
-# ============================================================================
+# --- JSON/Markdown/CSS ---
 
 OTHER_FILES=$(echo "$STAGED_FILES" | grep -E '\.(json|md|css|scss)$' || true)
-
 if [ -n "$OTHER_FILES" ]; then
-    echo "→ Running Prettier check on JSON/Markdown/CSS files..."
-
+    echo "→ Running Prettier..."
     for file in $OTHER_FILES; do
         if ! npx prettier --check "$file" 2>/dev/null; then
-            echo "❌ Prettier formatting issues in: $file"
             CHECKS_FAILED=1
         fi
     done
-
     if [ $CHECKS_FAILED -eq 1 ]; then
-        echo "❌ Formatting errors found. Run 'pnpm format' to auto-fix"
+        echo "Run 'pnpm format' to auto-fix"
         exit 1
     fi
 fi
 
-# ============================================================================
-# FINAL RESULT
-# ============================================================================
+# --- Result ---
 
 if [ $CHECKS_FAILED -eq 0 ]; then
-    echo "✅ All pre-commit checks passed!"
+    echo "All pre-commit checks passed"
     exit 0
 else
-    echo "❌ Pre-commit checks failed - please fix the errors above"
+    echo "Pre-commit checks failed"
     exit 1
 fi
 EOF
-
 chmod +x .git/hooks/pre-commit
 ```
 
-**Supported Languages:**
-- **JavaScript/TypeScript**: ESLint + Prettier
-- **Python**: ruff (linting) + black (formatting)
-- **JSON/Markdown/CSS**: Prettier
-
-**Auto-fix Commands:**
-- `pnpm lint:fix` - Fix JS/TS lint errors
-- `pnpm format` - Format JS/TS/JSON/MD/CSS files
-- `pnpm lint:py:fix` - Fix Python lint errors
-- `pnpm format:py` - Format Python files
-- `pnpm format:all` - Format all languages
-- `pnpm lint:all` - Lint all languages
-
-## Developer Setup and Best Practices
-
-### Working Directory
-Run Claude in the project root or its src root folder. Keep any sensitive keys or secret sauce code separate from Claude.
-
-### Protecting Sensitive Files
-Claude Code can read all files in your project by default. To prevent access to sensitive files like .env:
-
-1. Type `/permissions` in Claude Code
-2. Select `Deny` then enter a new rule: `Read(./.env)`
-3. Save in either project settings (current project only) or user settings (all projects)
-
-Consider also blocking other sensitive files:
-- `Read(./.env.local)`
-- `Read(./.env.production)`
-- `Read(./config/secrets.*)`
-- `Read(./**/private_key.pem)`
-
-### Initial Setup
-Run `/init` to create ai/claude.md - Claude will use this to document the codebase
-
-### Code Review Process
-- **Before editing**: Claude must show every line of code that will change and get approval
-- **After editing**: Review changes again with `git diff` before committing
-  - Use `Ctrl-O` to expand truncated diffs if needed
-- For new files, review the entire file content before creation
-- Commit each feature separately for easy rollback
-- Handle all git commits manually (don't let Claude auto-commit)
-- Never push to git without every line being approved
-
-## Instructions to Give Claude at Session Start
-Copy and paste these guidelines to Claude at the beginning of each session:
-```
-Please follow these guidelines for our work session:
-
-## CRITICAL: Code Change Protocol
-**YOU MUST FOLLOW THIS TWO-STAGE APPROVAL PROCESS FOR EVERY FILE CHANGE:**
-
-### Stage 1: BEFORE editing any file
-- Show me the EXACT changes you plan to make
-- Include line numbers and full context
-- Wait for my explicit approval with "approved" or "yes"
-- DO NOT proceed without approval
-
-### Stage 2: AFTER editing, BEFORE committing
-- Run `git diff` on all modified files
-- Show me the complete diff output
-- For new files, show the entire file content
-- Wait for my explicit approval before committing
-- I may need to use Ctrl-O to expand truncated diffs
-
-## File Organization Rules
-1. Keep all ai related .md files in an ai subfolder
-2. Create a separate directory for each feature within ai/ to keep it organized
-3. Do not mention Claude in code comments or git commits
-4. Write updates on what has been done regularly in case the session exits
-
-## Workflow
-Use this file structure:
-- `ai/claude.md`                        # codebase documentation (update as work progresses)
-- `ai/feature_<identifier>/feature.md`  # feature requirements. Created by me.
-- `ai/feature_<identifier>/plan.md`     # work plan for the feature. created and edited by AI.
-- `ai/feature_<identifier>/status.md`   # current progress and updated regularly by AI
-
-**Where `<identifier>` can be:**
-- A descriptive label: `fix_high_cpu`, `user_auth`, `payment_integration`, etc.
-- An ID: `0001`, `JIRA-456`, `GH-789`, etc.
-
-**If the feature identifier is not provided, AI will ask:** 
-*"What would you like to call this feature? (e.g., a descriptive name like 'fix_high_cpu' or an ID like '0001')"*
-
-Before starting any feature:
-1. Review the feature requirements in `ai/feature_<identifier>/feature.md`
-2. Create or update `ai/feature_<identifier>/plan.md` with your approach
-3. Wait for approval before implementing
-4. Update `ai/feature_<identifier>/status.md` regularly as you work
-
-**REMEMBER: No file edits without showing changes first. No commits without showing git diff. No exceptions.**
-```
+</details>
