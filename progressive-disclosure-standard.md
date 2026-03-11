@@ -14,6 +14,7 @@
 
 - [1. Quick-Start Summary](#1-quick-start-summary)
 - [2. Introduction and Motivation](#2-introduction-and-motivation)
+  - [2.4 Why Not a Skill?](#24-why-not-a-skill)
 - [3. The Standard: L0 / L1 / L2 Architecture](#3-the-standard-l0--l1--l2-architecture)
   - [3.1 Architecture Overview](#31-architecture-overview)
   - [3.2 L0 — The Repo Card](#32-l0--the-repo-card)
@@ -74,6 +75,16 @@ AI coding agents loading an entire codebase into context is expensive, slow, and
 - **Human onboarding** — The same docs serve new engineers joining a team
 - **Consistency** — Predictable structure across all enterprise repos enables shared tooling and enterprise-wide repo discovery
 - **Framework agnosticism** — Works with any language, framework, or AI tool
+
+### 2.4 Why Not a Skill?
+
+An earlier design packaged repo documentation as an AI agent "skill" — a portable capability that agents discover and activate. We moved to plain files in `docs/ai/` instead. The reason is a fundamental mismatch between what skills are and what repo docs are.
+
+**Skills are capabilities. Repo docs are context.** A skill gives an agent a new ability it didn't have before — process PDFs, query BigQuery, generate slides. Repo documentation doesn't add ability; it describes the environment the agent is *already operating in*. This distinction drives two concrete differences:
+
+1. **Skills are demand-loaded; repo context must be eager-loaded.** The skill model activates a skill when a task matches a trigger. Repo context is needed *before* the agent knows its task — it can't decide which files matter without understanding the codebase first. Wrapping repo docs in a skill means relying on trigger-matching for something that should always be present. A skill that must always activate is just documentation with extra indirection.
+
+2. **Skills require discovery infrastructure; files on disk don't.** AI coding agents work by giving sub-agents a prompt and a set of file paths on disk. `AGENTS.md` + `docs/ai/` is just files in the working directory — any agent, any tool, any orchestration layer can read them without plugin systems, install steps, or tool-specific conventions. You wouldn't want every repository's docs loaded into every agent session, but you always want the *current repo's* docs available, and the filesystem is the simplest mechanism for that.
 
 ---
 
