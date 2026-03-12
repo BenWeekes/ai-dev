@@ -375,6 +375,8 @@ The quality of the agent's output depends on the quality of your prompt. Vague i
 - **Use system prompts for repo-specific instructions.** `CLAUDE.md`, `AGENTS.md`, and similar config files persist conventions across sessions — coding standards, preferred libraries, architectural constraints. Write them once, and every session inherits the context.
 - **Constraints help.** "Change only `src/auth.ts`", "don't refactor surrounding code", "follow the pattern in `src/api/posts.ts`" — constraints reduce scope and make the output more predictable.
 
+For a real example of a well-structured prompt, see [Prompt: Generate Docs for an Existing Repo](progressive-disclosure-standard.md#6-prompt-generate-docs-for-an-existing-repo) — a self-contained prompt that generates progressive disclosure documentation for any codebase.
+
 ---
 
 ## 10. Evals
