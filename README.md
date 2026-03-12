@@ -1,25 +1,80 @@
 # AI-Assisted Development Guide
 
-Practices and standards for working effectively with AI coding agents across repositories. Tool-agnostic — the principles here apply regardless of which AI coding tool you use.
+Start here for AI-assisted coding. This guide covers the single-repo workflow — the practices that make AI coding effective and safe. Tool-agnostic, though we recommend Claude Code for the best experience.
+
+For coordinating AI agents across multiple repositories, see [Multi-Repo Orchestration](multi-repo-orchestration.md).
 
 ---
 
-## What's in This Repo
+## 1. AI Coding Tools
 
-| Document | What It Is | Start Here If... |
-|----------|-----------|-----------------|
-| [Progressive Disclosure Documentation Standard](progressive-disclosure-standard.md) | A three-level documentation architecture (L0/L1/L2) that makes any git repo self-describing for AI agents and humans. The foundation everything else builds on. | You want to make a single repo easier for AI agents to work with. |
-| [AI Coding Orchestration](ai-coding-orchestration.md) | A conceptual guide for coordinating AI agents across multiple repositories — agent tiers, epic lifecycle, cross-repo code review, contract testing. Builds on the PD standard. | You're thinking about how AI agents coordinate when a feature spans multiple repos. |
+| Tool | What It Is |
+|------|-----------|
+| [Claude Code](https://docs.anthropic.com/en/docs/claude-code) | Anthropic's CLI agent. Terminal-native, agentic, strong at multi-file edits. Recommended. |
+| [Cursor](https://cursor.sh) | VS Code fork with inline AI. Good for visual editing workflows. |
+| [GitHub Copilot](https://github.com/features/copilot) | GitHub's AI pair programmer. Inline completions and chat in VS Code/JetBrains. |
+| [Cody](https://sourcegraph.com/cody) | Sourcegraph's coding assistant. Strong codebase-aware context via code graph. |
+| [Aider](https://aider.chat) | Open-source CLI agent. Git-native, works with multiple LLM providers. |
 
-**Reading order:** Start with the Progressive Disclosure standard. The orchestration guide assumes familiarity with its concepts (L0 Repo Cards, L1 Operator Packs, identity blocks).
+Everything in this guide works with any of these tools. The practices are about *how you work*, not which tool you use.
 
 ---
 
-## AI Coding Best Practices
+## 2. The Single-Repo Workflow
 
-These apply to any AI coding tool. They're the habits that prevent AI-assisted development from creating more problems than it solves.
+### 2.1 Plan Before You Code
 
-### Review Changes
+Have the agent explain its approach before it starts editing files. A plan catches wrong assumptions before they become wrong code.
+
+**What a plan includes:**
+
+- **Problem:** What are we solving?
+- **Approach:** How will we solve it?
+- **Acceptance criteria:** How do we know it's done?
+- **Files to change:** Which files will be created or modified?
+
+Store plans in `docs/plans/` inside the repo. They're markdown files, version-controlled and reviewable in PRs. Old plans serve as context for future agents — they show how the codebase evolved and why.
+
+#### Sharing Plans for Review
+
+Plans are cheap to review. Include them in PRs:
+
+- Create a plan file in `docs/plans/` before starting implementation
+- Open a draft PR with just the plan for early feedback
+- Tag both human reviewers and (optionally) AI review agents
+- Merge the plan alongside the implementation it describes
+
+#### Verifying Plans with Multiple Agents
+
+Before implementing, have a second agent review the plan. Use a different tool or a separate session for an independent perspective.
+
+This is cheap — plans are small documents. The second agent checks for:
+
+- Missed edge cases
+- Simpler alternatives
+- Architectural issues the first agent didn't consider
+- Files or dependencies the plan overlooks
+
+Two agents disagreeing on approach is a signal to involve a human before any code is written.
+
+### 2.2 Test Driven Development
+
+Write the test first, verify it fails, then write the implementation. This is especially important for AI agents, which are prone to writing tests that mirror their implementation rather than independently encoding the requirement.
+
+**The sequence:**
+
+1. **Read** acceptance criteria from the task or plan
+2. **Write** test(s) that encode the criteria
+3. **Run** tests — verify they fail (a test that passes before implementation tests nothing)
+4. **Write** implementation code
+5. **Run** tests — verify they pass
+6. **Commit** on green
+
+> **Fix the code, not the test.** When a test fails after implementation, fix the implementation — not the test. Weakening a test to match broken code defeats the purpose.
+
+> **A task is not complete until all tests pass.** No failures, no skipped tests. If the agent cannot get tests passing after a reasonable effort, it should report the task as blocked with diagnostics and escalate to a human.
+
+### 2.3 Review Changes
 
 - **Review plans before code is written.** Have the agent explain its approach and get your approval before it starts editing.
 - **Review diffs before committing.** Use `git diff` to inspect what actually changed. Expand truncated output if needed.
@@ -27,7 +82,13 @@ These apply to any AI coding tool. They're the habits that prevent AI-assisted d
 
 There's a spectrum here. Reviewing every diff line by line is the safest approach, but it's also slow. Combining Test Driven Development (tests pass or it's not done) with code review agents can reduce the need to read every line — the tests provide a mechanical safety net, and review agents catch issues you might miss. Git hooks (see below) add another layer by enforcing coding conventions and formatting automatically. Find the balance that matches your confidence in the agent and the risk of the change.
 
-### Protect Sensitive Files
+### 2.4 Commit Hygiene
+
+- Commit each feature or logical change separately for easy rollback.
+- Handle git commits yourself — don't let the agent auto-commit without review.
+- Keep commit messages descriptive and lowercase (see git hooks below).
+
+### 2.5 Protect Sensitive Files
 
 AI coding agents can typically read all files in your project. Prevent access to secrets:
 
@@ -35,13 +96,55 @@ AI coding agents can typically read all files in your project. Prevent access to
 - Block `config/secrets.*`, `**/private_key.pem`, and any credentials files.
 - Most AI coding tools have a permissions or deny-list mechanism — use it.
 
-### Commit Hygiene
+---
 
-- Commit each feature or logical change separately for easy rollback.
-- Handle git commits yourself — don't let the agent auto-commit without review.
-- Keep commit messages descriptive and lowercase (see git hooks below).
+## 3. Where Plans Live
 
-### Make Repos Self-Describing
+Store plans in `docs/plans/` inside the repo. They're version-controlled, reviewable, and serve as historical context.
+
+### Plan Template
+
+```markdown
+# Plan: [Short Title]
+
+## Problem
+
+[What are we solving? 2-3 sentences.]
+
+## Approach
+
+[How will we solve it? Bullet points.]
+
+## Acceptance Criteria
+
+- [ ] [Criterion 1]
+- [ ] [Criterion 2]
+- [ ] [Criterion 3]
+
+## Files to Change
+
+| File | Action |
+|------|--------|
+| `path/to/file` | Create / Modify / Delete |
+
+## Open Questions
+
+- [Anything unresolved that needs human input]
+```
+
+### Why Plans Accumulate
+
+Old plans are useful. When a new agent session starts, it can read `docs/plans/` to understand:
+
+- What was already tried and why
+- How the codebase got to its current state
+- What design decisions were made and their rationale
+
+Don't delete plans after implementation. They're lightweight documentation that costs nothing to keep.
+
+---
+
+## 4. Make Repos Self-Describing
 
 AI agents work better when they can quickly understand a codebase. The [Progressive Disclosure Documentation Standard](progressive-disclosure-standard.md) provides a structured way to do this — a single Repo Card (L0) for orientation, an Operator Pack (L1) for working knowledge, and deep dives (L2) for complex areas.
 
@@ -49,7 +152,7 @@ Even without adopting the full standard, a well-maintained README, clear directo
 
 ---
 
-## Git Hooks
+## 5. Git Hooks
 
 Git hooks enforce what agents (and humans) can't easily forget: coding conventions, code formatting, commit message standards, and author control. They run automatically on every commit, so quality checks don't depend on anyone remembering to run them.
 
@@ -244,3 +347,31 @@ chmod +x .git/hooks/pre-commit
 ```
 
 </details>
+
+---
+
+## 6. Computer Use Agents (CUA)
+
+Computer Use Agents interact with running applications through a browser or UI — clicking buttons, filling forms, navigating pages. They test the integrated system the way a user would.
+
+**Use cases:**
+
+- **E2E validation:** Verify that a feature works end-to-end in the actual running application
+- **UI regression:** Catch visual or interaction regressions that unit tests can't detect
+- **Exploratory testing:** Have an agent explore the app looking for broken flows or unexpected behavior
+
+CUA complements unit and integration tests — it doesn't replace them. Unit tests are fast and precise. CUA tests are slow but realistic. Use both.
+
+For CUA in multi-repo scenarios (testing integrated systems across multiple codebases), see [Multi-Repo Orchestration](multi-repo-orchestration.md).
+
+---
+
+## 7. What's in This Repo
+
+| Document | What It Is | Start Here If... |
+|----------|-----------|-----------------|
+| [README](README.md) (this file) | Single-repo AI coding workflow: planning, TDD, review, git hooks, CUA. | You want to start AI-assisted coding on a project. |
+| [Progressive Disclosure Documentation Standard](progressive-disclosure-standard.md) | A three-level documentation architecture (L0/L1/L2) that makes any git repo self-describing for AI agents and humans. | You want to make a repo easier for AI agents to work with. |
+| [Multi-Repo Orchestration](multi-repo-orchestration.md) | A conceptual guide for coordinating AI agents across multiple repositories — agent tiers, epic lifecycle, cross-repo code review, contract testing. | You're thinking about how AI agents coordinate when a feature spans multiple repos. |
+
+**Reading order:** Start with this README. Then the Progressive Disclosure standard if you want self-describing repos. The multi-repo orchestration guide builds on both.

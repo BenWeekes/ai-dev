@@ -1,12 +1,6 @@
 # Progressive Disclosure Documentation Standard
 
-## Enterprise Standard for Self-Describing Git Repositories
-
-**Version:** 1.2
-**Status:** Active
-**Last Updated:** 2026-02-23
-
-> **Upgrading from a previous version?** Re-run the generation prompt (Section 6) against your repo. The prompt embeds the current standard — generated output will conform to the latest structure. No manual migration steps are needed unless the L1 file set changes (it hasn't since v1.0).
+## A Standard for Self-Describing Git Repositories
 
 ---
 
@@ -78,52 +72,18 @@ AI coding agents loading an entire codebase into context is expensive, slow, and
 
 ### 2.4 Why Not a Skill?
 
-An earlier design packaged repo documentation as an AI agent "skill" — a portable capability that agents discover and activate. We moved to plain files in `docs/ai/` instead. Here's why, and where the line actually falls.
+Skills and progressive disclosure docs are structurally similar — both use a tree where a top-level entry gates access to deeper content. But they differ in **loading trigger** and **scoping**, and those differences matter.
 
-#### What's similar
+| | Skills | Progressive Disclosure Docs |
+|---|---|---|
+| **Loading trigger** | Request matching — activates when a query matches the skill description | Filesystem — loads because you're *in the repo* |
+| **Scoping** | Portable across repos and contexts | Local to this repo, always |
+| **Activation** | On-demand when matched | Always-on at session start |
+| **Versioning** | External to the repo | Travels with the repo in git — branches, forks, PRs |
 
-Skills and progressive disclosure docs are structurally alike. Both use a tree: a top-level entry (skill description / L0 repo card) that gates access to deeper content (tool calls / L1+L2 files). Both give the agent knowledge it wouldn't otherwise have. Repo docs absolutely give the agent *capability* — an agent that knows the codebase conventions, gotchas, and workflows can do things it couldn't do without them. Calling one "capability" and the other "context" overstates the difference.
+The filesystem already provides the right trigger (you're here) and scope (this repo's files). A skill that must always activate for the current repo is just files with extra indirection.
 
-#### What's different
-
-The real differences are about **how loading is triggered** and **how the content is scoped**.
-
-1. **Loading trigger: filesystem vs. request matching.** A skill activates when the agent's request matches a description or metadata tag. Repo docs should load because you're *in the repo* — the filesystem is the trigger. You don't need to match anything to know you need the current repo's docs; you're already there.
-
-2. **The mapping problem.** Even if you packaged repo docs as a skill, you'd need a way to (a) map each request to the correct repo and (b) load the right files — and that loading mechanism differs per AI coding tool. The filesystem solves both: you're already in the right place, and every tool can read files.
-
-3. **Always-on vs. on-demand.** Docs for the current repo should load first, every session. Skills activate when matched. A skill that must always activate is just files with extra indirection.
-
-4. **Local + versioned vs. portable.** Repo docs travel with the repo in version control — branch, fork, and PR alongside the code they describe. Skills are portable across contexts, which is their strength for cross-repo capabilities but unnecessary overhead for repo-specific knowledge.
-
-#### Side-by-side: loading paths
-
-```
-Skill loading:                          PD docs loading:
-─────────────                           ────────────────
-User request                            Agent opens repo
-       │                                       │
-       ▼                                       ▼
-Match request to skill description      Read AGENTS.md (or CLAUDE.md)
-       │                                       │
-       ▼                                       ▼
-Locate + load skill definition          Read L0 repo card
-       │                                       │
-       ▼                                       ▼
-Tool calls load deeper content          Load all L1 files
-       │                                       │
-       ▼                                       ▼
-Agent has new knowledge                 Agent has new knowledge
-
-Trigger: request content                Trigger: filesystem location
-Scope:   any repo, any context          Scope:   this repo, always
-```
-
-The tree shape is the same. The trigger and scoping are different. Skills need request matching and discovery infrastructure. Repo docs need neither — the filesystem provides the trigger (you're here) and the scope (this repo's files).
-
-#### Conclusion
-
-Plain files in `docs/ai/` win for repo documentation because the filesystem already provides the right trigger and scoping, with no infrastructure required. Skills remain the right model for portable, cross-repo capabilities that genuinely need request matching.
+Skills remain the right model for portable, cross-repo capabilities that genuinely need request matching.
 
 ---
 

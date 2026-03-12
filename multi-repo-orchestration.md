@@ -1,13 +1,12 @@
-# AI Coding Orchestration
+# Multi-Repo Orchestration
 
 ## A Guide to Multi-Agent Coordination Across Repositories
 
-**Version:** 0.2 DRAFT
-**Status:** Draft — Not for implementation
-**Last Updated:** 2026-03-11
 **Depends On:** [Progressive Disclosure Documentation Standard](progressive-disclosure-standard.md)
 
-> **This is a conceptual guide, not a specification.** We are in a discovery phase — finding the best ways for AI agents to coordinate across repositories. Everything here is a recommendation, not a rule. Sections marked `[OPEN QUESTION]` are explicitly unsettled. Feedback welcome.
+> **For single-repo AI coding practices, start with the [README](README.md).** This document covers coordination across multiple repositories.
+
+> **This is a conceptual guide, not a specification.** Everything here is a recommendation, not a rule. Sections marked `[OPEN QUESTION]` are explicitly unsettled. Feedback welcome.
 
 ---
 
@@ -29,7 +28,7 @@
 
 This guide describes a **multi-agent architecture** for coordinating AI coding work across multiple git repositories. It builds on the [Progressive Disclosure Documentation Standard](progressive-disclosure-standard.md), which makes individual repos self-describing. This document addresses the next layer: how agents collaborate when a feature spans multiple codebases.
 
-The core idea: a coordinating agent plans cross-repo work, repo-level agents implement within their own boundaries, and structured review gates keep humans in the loop. Test Driven Development anchors quality — **all tests pass or the task is not done**.
+The core idea: a coordinating agent plans cross-repo work, repo-level agents implement within their own boundaries, and structured review gates keep humans in the loop. [Test Driven Development](README.md#22-test-driven-development) anchors quality at the single-repo level; this document adds the multi-repo coordination layer on top.
 
 ### Agent Tiers
 
@@ -65,10 +64,6 @@ Cross-repo features follow a predictable lifecycle: understand the system, plan 
 > **Progressive disclosure integration** — Agents bootstrap their understanding of each repo from L0/L1 docs, not raw file trees.
 
 > **Human-in-the-loop** — Review gates at plan, interface agreement, and integration phases.
-
-> **Test Driven Development** — Tests are written before implementation. All tests must pass or the task is not complete.
-
-> **Tool agnosticism** — The architecture works with any AI coding tool, not just one vendor's product.
 
 ---
 
@@ -254,20 +249,9 @@ Cross-repo review applies when a change in one repo alters a shared interface: a
 
 ## 7. Testing and Completion
 
-### Test Driven Development as a Principle
+### Test Driven Development
 
-We recommend that all agent-written code follows Test Driven Development: write the test first, verify it fails, then write the implementation. This discipline is especially important for AI agents, which are prone to writing tests that mirror their implementation rather than independently encoding the requirement.
-
-The recommended sequence:
-
-1. **Read** acceptance criteria from the task
-2. **Write** test(s) that encode the criteria
-3. **Run** tests — verify they fail (a test that passes before implementation tests nothing)
-4. **Write** implementation code
-5. **Run** tests — verify they pass
-6. **Commit** on green
-
-> **Fix the code, not the test.** When a test fails after implementation, the agent should fix the implementation — not weaken the test to match broken code.
+Repo Agents follow [Test Driven Development](README.md#22-test-driven-development) as described in the README — write the test first, verify it fails, implement, verify it passes.
 
 ### Test Layers
 
@@ -281,11 +265,7 @@ The recommended sequence:
 
 ### The Completion Rule
 
-> **A task is not complete until all tests pass. No failures, no skipped tests.**
-
-This is the quality anchor for the whole system. A Repo Agent should not report a task as complete if any test is failing or skipped. The System Agent should not advance the epic to the next phase while any repo has failing tests.
-
-If an agent cannot get tests passing after a reasonable effort, it should report the task as **blocked** with diagnostics (failure output, what was tried) and escalate to the System Agent or a human.
+The [completion rule](README.md#22-test-driven-development) applies at every level: a Repo Agent should not report a task as complete if any test is failing or skipped. The System Agent should not advance the epic to the next phase while any repo has failing tests.
 
 ### Contract Testing
 
@@ -318,7 +298,7 @@ Both repos have Progressive Disclosure docs pre-generated per the PD standard.
 1. **Discovery** — System Agent loads the System Card, identifies both repos as affected, reads their L0 + relevant L1 files.
 2. **Planning** — System Agent produces an Epic Plan: `demo-api` provides the endpoint (no dependencies), `demo-sdk` consumes it (depends on API contract).
 3. **Interface agreement** — Both Repo Agents review and agree on the contract (response shape, error codes). Human reviews.
-4. **Implementation** — Both Repo Agents implement in parallel using TDD. The API agent writes endpoint tests first, then the endpoint. The SDK agent writes method tests first, then the method.
+4. **Implementation** — Both Repo Agents implement in parallel using [TDD](README.md#22-test-driven-development). The API agent writes endpoint tests first, then the endpoint. The SDK agent writes method tests first, then the method.
 5. **Cross-repo review** — The SDK Repo Agent reviews the API's response shape from the consumer perspective.
 6. **Integration** — Contract tests run in both repos. Integration test verifies the SDK can call the running API.
 7. **Validation** — If a frontend repo existed, CUA would test the user flow through the browser.
