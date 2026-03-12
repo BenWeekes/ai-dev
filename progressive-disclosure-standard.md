@@ -1078,6 +1078,3 @@ A: Scrape all `L0_repo_card.md` files across repos. The Identity Block (name, ty
 **Q: What if the agent generates incorrect docs?**
 A: Expected for domain-specific content. Agents excel at structural generation but miss tribal knowledge. Always review with a senior engineer.
 
----
-
-### End of Standard

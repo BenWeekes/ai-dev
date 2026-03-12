@@ -2,16 +2,24 @@
 
 ## Table of Contents
 
+**Setup**
+
 - [1. AI Coding Tools](#1-ai-coding-tools)
-- [2. Plan Before You Code](#2-plan-before-you-code)
+- [2. Protect Sensitive Files](#2-protect-sensitive-files)
+- [3. Make Repos Self-Describing](#3-make-repos-self-describing)
+- [4. Git Hooks](#4-git-hooks)
+
+**Workflow**
+
+- [5. Plan Before You Code](#5-plan-before-you-code)
   - [Sharing Plans for Review](#sharing-plans-for-review)
   - [Verifying Plans with Multiple Agents](#verifying-plans-with-multiple-agents)
   - [Plan Template](#plan-template)
-- [3. Test Driven Development](#3-test-driven-development)
-- [4. Review Changes](#4-review-changes)
-- [5. Protect Sensitive Files](#5-protect-sensitive-files)
-- [6. Make Repos Self-Describing](#6-make-repos-self-describing)
-- [7. Git Hooks](#7-git-hooks)
+- [6. Test Driven Development](#6-test-driven-development)
+- [7. Review Changes](#7-review-changes)
+
+**Advanced**
+
 - [8. Computer Use Agents (CUA)](#8-computer-use-agents-cua)
 - [9. Multi-Repo Orchestration](#9-multi-repo-orchestration)
 
@@ -31,105 +39,7 @@ Everything in this guide works with any of these tools. The practices are about 
 
 ---
 
-## 2. Plan Before You Code
-
-Have the agent explain its approach before it starts editing files. A plan catches wrong assumptions before they become wrong code.
-
-**What a plan includes:**
-
-- **Problem:** What are we solving?
-- **Approach:** How will we solve it?
-- **Acceptance criteria:** How do we know it's done?
-- **Files to change:** Which files will be created or modified?
-
-Store plans in `docs/plans/` inside the repo. They're markdown files, version-controlled and reviewable in PRs. Old plans serve as context for future agents — they show how the codebase evolved and why.
-
-### Sharing Plans for Review
-
-Plans are cheap to review. Include them in PRs:
-
-- Create a plan file in `docs/plans/` before starting implementation
-- Open a draft PR with just the plan for early feedback
-- Tag both human reviewers and (optionally) AI review agents
-- Merge the plan alongside the implementation it describes
-
-### Verifying Plans with Multiple Agents
-
-Before implementing, have a second agent review the plan. Use a different tool or a separate session for an independent perspective.
-
-This is cheap — plans are small documents. The second agent checks for:
-
-- Missed edge cases
-- Simpler alternatives
-- Architectural issues the first agent didn't consider
-- Files or dependencies the plan overlooks
-
-Two agents disagreeing on approach is a signal to involve a human before any code is written.
-
-### Plan Template
-
-```markdown
-# Plan: [Short Title]
-
-## Problem
-
-[What are we solving? 2-3 sentences.]
-
-## Approach
-
-[How will we solve it? Bullet points.]
-
-## Acceptance Criteria
-
-- [ ] [Criterion 1]
-- [ ] [Criterion 2]
-- [ ] [Criterion 3]
-
-## Files to Change
-
-| File | Action |
-|------|--------|
-| `path/to/file` | Create / Modify / Delete |
-
-## Open Questions
-
-- [Anything unresolved that needs human input]
-```
-
-Don't delete plans after implementation. Old plans are useful context — they show what was tried, what decisions were made, and why.
-
----
-
-## 3. Test Driven Development
-
-Write the test first, verify it fails, then write the implementation. This is especially important for AI agents, which are prone to writing tests that mirror their implementation rather than independently encoding the requirement.
-
-**The sequence:**
-
-1. **Read** acceptance criteria from the task or plan
-2. **Write** test(s) that encode the criteria
-3. **Run** tests — verify they fail (a test that passes before implementation tests nothing)
-4. **Write** implementation code
-5. **Run** tests — verify they pass
-6. **Commit** on green
-
-> **Fix the code, not the test.** When a test fails after implementation, fix the implementation — not the test. Weakening a test to match broken code defeats the purpose.
-
-> **A task is not complete until all tests pass.** No failures, no skipped tests. If the agent cannot get tests passing after a reasonable effort, it should report the task as blocked with diagnostics and escalate to a human.
-
----
-
-## 4. Review Changes
-
-- **Review plans before code is written.** Have the agent explain its approach and get your approval before it starts editing.
-- **Review diffs before committing.** Use `git diff` to inspect what actually changed. Expand truncated output if needed.
-- **Never push code you haven't reviewed.**
-
-There's a spectrum here. Reviewing every diff line by line is the safest approach, but it's also slow. Combining Test Driven Development (tests pass or it's not done) with code review agents can reduce the need to read every line — the tests provide a mechanical safety net, and review agents catch issues you might miss. Git hooks (see below) add another layer by enforcing coding conventions and formatting automatically. Find the balance that matches your confidence in the agent and the risk of the change.
-
----
-
-## 5. Protect Sensitive Files
+## 2. Protect Sensitive Files
 
 AI coding agents can typically read all files in your project. Prevent access to secrets:
 
@@ -139,7 +49,7 @@ AI coding agents can typically read all files in your project. Prevent access to
 
 ---
 
-## 6. Make Repos Self-Describing
+## 3. Make Repos Self-Describing
 
 AI agents work better when they can quickly understand a codebase. The [Progressive Disclosure Documentation Standard](progressive-disclosure-standard.md) provides a structured way to do this — a single Repo Card (L0) for orientation, an Operator Pack (L1) for working knowledge, and deep dives (L2) for complex areas.
 
@@ -147,7 +57,7 @@ Even without adopting the full standard, a well-maintained README, clear directo
 
 ---
 
-## 7. Git Hooks
+## 4. Git Hooks
 
 Git hooks enforce what agents (and humans) can't easily forget: coding conventions, code formatting, commit message standards, and author control. They run automatically on every commit, so quality checks don't depend on anyone remembering to run them.
 
@@ -342,6 +252,103 @@ chmod +x .git/hooks/pre-commit
 ```
 
 </details>
+
+---
+
+## 5. Plan Before You Code
+
+Have the agent explain its approach before it starts editing files. A plan catches wrong assumptions before they become wrong code.
+
+**What a plan includes:**
+
+- **Problem:** What are we solving?
+- **Approach:** How will we solve it?
+- **Acceptance criteria:** How do we know it's done?
+- **Files to change:** Which files will be created or modified?
+
+Store plans in `docs/plans/` inside the repo. They're markdown files, version-controlled and reviewable in PRs. Old plans serve as context for future agents — they show how the codebase evolved and why.
+
+### Sharing Plans for Review
+
+Plans are cheap to review. Include them in PRs:
+
+- Create a plan file in `docs/plans/` before starting implementation
+- Open a draft PR with just the plan for early feedback
+- Tag both human reviewers and (optionally) AI review agents
+- Merge the plan alongside the implementation it describes
+
+### Verifying Plans with Multiple Agents
+
+Before implementing, have a second agent review the plan. Use a different tool or a separate session for an independent perspective.
+
+This is cheap — plans are small documents. The second agent checks for:
+
+- Missed edge cases
+- Simpler alternatives
+- Architectural issues the first agent didn't consider
+- Files or dependencies the plan overlooks
+
+Two agents disagreeing on approach is a signal to involve a human before any code is written.
+
+### Plan Template
+
+```markdown
+# Plan: [Short Title]
+
+## Problem
+
+[What are we solving? 2-3 sentences.]
+
+## Approach
+
+[How will we solve it? Bullet points.]
+
+## Acceptance Criteria
+
+- [ ] [Criterion 1]
+- [ ] [Criterion 2]
+- [ ] [Criterion 3]
+
+## Files to Change
+
+| File | Action |
+|------|--------|
+| `path/to/file` | Create / Modify / Delete |
+
+## Open Questions
+
+- [Anything unresolved that needs human input]
+```
+
+Don't delete plans after implementation. Old plans are useful context — they show what was tried, what decisions were made, and why.
+
+---
+
+## 6. Test Driven Development
+
+Write the test first, verify it fails, then write the implementation. This is especially important for AI agents, which are prone to writing tests that mirror their implementation rather than independently encoding the requirement.
+
+**The sequence:**
+
+1. **Read** acceptance criteria from the task or plan
+2. **Write** test(s) that encode the criteria
+3. **Run** tests — verify they fail (a test that passes before implementation tests nothing)
+4. **Write** implementation code
+5. **Run** tests — verify they pass
+6. **Commit** on green
+
+> **Fix the code, not the test.** When a test fails after implementation, fix the implementation — not the test. Weakening a test to match broken code defeats the purpose.
+
+> **A task is not complete until all tests pass.** No failures, no skipped tests. If the agent cannot get tests passing after a reasonable effort, it should report the task as blocked with diagnostics and escalate to a human.
+
+---
+
+## 7. Review Changes
+
+- **Review diffs before committing.** Use `git diff` to inspect what actually changed. Expand truncated output if needed.
+- **Never push code you haven't reviewed.**
+
+There's a spectrum here. Reviewing every diff line by line is the safest approach, but it's also slow. Combining TDD (tests pass or it's not done) with code review agents can reduce the need to read every line — the tests provide a mechanical safety net, and review agents catch issues you might miss. [Git hooks](#4-git-hooks) add another layer by enforcing coding conventions and formatting automatically. Find the balance that matches your confidence in the agent and the risk of the change.
 
 ---
 
