@@ -9,12 +9,11 @@
   - [Plan Template](#plan-template)
 - [3. Test Driven Development](#3-test-driven-development)
 - [4. Review Changes](#4-review-changes)
-- [5. Commit Hygiene](#5-commit-hygiene)
-- [6. Protect Sensitive Files](#6-protect-sensitive-files)
-- [7. Make Repos Self-Describing](#7-make-repos-self-describing)
-- [8. Git Hooks](#8-git-hooks)
-- [9. Computer Use Agents (CUA)](#9-computer-use-agents-cua)
-- [10. Multi-Repo Orchestration](#10-multi-repo-orchestration)
+- [5. Protect Sensitive Files](#5-protect-sensitive-files)
+- [6. Make Repos Self-Describing](#6-make-repos-self-describing)
+- [7. Git Hooks](#7-git-hooks)
+- [8. Computer Use Agents (CUA)](#8-computer-use-agents-cua)
+- [9. Multi-Repo Orchestration](#9-multi-repo-orchestration)
 
 ---
 
@@ -130,15 +129,7 @@ There's a spectrum here. Reviewing every diff line by line is the safest approac
 
 ---
 
-## 5. Commit Hygiene
-
-- Commit each feature or logical change separately for easy rollback.
-- Handle git commits yourself — don't let the agent auto-commit without review.
-- Keep commit messages descriptive and lowercase (see git hooks below).
-
----
-
-## 6. Protect Sensitive Files
+## 5. Protect Sensitive Files
 
 AI coding agents can typically read all files in your project. Prevent access to secrets:
 
@@ -148,7 +139,7 @@ AI coding agents can typically read all files in your project. Prevent access to
 
 ---
 
-## 7. Make Repos Self-Describing
+## 6. Make Repos Self-Describing
 
 AI agents work better when they can quickly understand a codebase. The [Progressive Disclosure Documentation Standard](progressive-disclosure-standard.md) provides a structured way to do this — a single Repo Card (L0) for orientation, an Operator Pack (L1) for working knowledge, and deep dives (L2) for complex areas.
 
@@ -156,7 +147,7 @@ Even without adopting the full standard, a well-maintained README, clear directo
 
 ---
 
-## 8. Git Hooks
+## 7. Git Hooks
 
 Git hooks enforce what agents (and humans) can't easily forget: coding conventions, code formatting, commit message standards, and author control. They run automatically on every commit, so quality checks don't depend on anyone remembering to run them.
 
@@ -354,7 +345,7 @@ chmod +x .git/hooks/pre-commit
 
 ---
 
-## 9. Computer Use Agents (CUA)
+## 8. Computer Use Agents (CUA)
 
 Computer Use Agents interact with running applications through a browser or UI — clicking buttons, filling forms, navigating pages. They test the integrated system the way a user would.
 
@@ -368,6 +359,6 @@ CUA complements unit and integration tests — it doesn't replace them. Unit tes
 
 ---
 
-## 10. Multi-Repo Orchestration
+## 9. Multi-Repo Orchestration
 
 When a feature spans multiple repositories, you need coordination across agents. The [Multi-Repo Orchestration](multi-repo-orchestration.md) guide covers agent tiers, epic lifecycle, cross-repo code review, and contract testing.
