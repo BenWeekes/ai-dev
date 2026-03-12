@@ -19,12 +19,13 @@ Practices and standards for working effectively with AI coding agents across rep
 
 These apply to any AI coding tool. They're the habits that prevent AI-assisted development from creating more problems than it solves.
 
-### Review Every Change
+### Review Changes
 
-- **Before editing:** Have the agent show the planned changes and get your approval before it writes code.
-- **After editing:** Review the actual diff (`git diff`) before committing. Expand truncated output if needed.
-- **New files:** Review the entire file content before creation.
-- Never push code you haven't reviewed line by line.
+- **Review plans before code is written.** Have the agent explain its approach and get your approval before it starts editing.
+- **Review diffs before committing.** Use `git diff` to inspect what actually changed. Expand truncated output if needed.
+- **Never push code you haven't reviewed.**
+
+There's a spectrum here. Reviewing every diff line by line is the safest approach, but it's also slow. Combining Test Driven Development (tests pass or it's not done) with code review agents can reduce the need to read every line — the tests provide a mechanical safety net, and review agents catch issues you might miss. Git hooks (see below) add another layer by enforcing coding conventions and formatting automatically. Find the balance that matches your confidence in the agent and the risk of the change.
 
 ### Protect Sensitive Files
 
@@ -50,7 +51,9 @@ Even without adopting the full standard, a well-maintained README, clear directo
 
 ## Git Hooks
 
-These hooks enforce commit quality. They're language-aware and work across JavaScript/TypeScript, Python, JSON, Markdown, and CSS.
+Git hooks enforce what agents (and humans) can't easily forget: coding conventions, code formatting, commit message standards, and author control. They run automatically on every commit, so quality checks don't depend on anyone remembering to run them.
+
+The hooks below are language-aware and work across JavaScript/TypeScript, Python, JSON, Markdown, and CSS.
 
 ### commit-msg Hook
 
