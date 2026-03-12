@@ -8,20 +8,23 @@
 - [2. Protect Sensitive Files](#2-protect-sensitive-files)
 - [3. Make Repos Self-Describing](#3-make-repos-self-describing)
 - [4. Git Hooks](#4-git-hooks)
+- [5. CI/CD Integration](#5-cicd-integration)
 
 **Workflow**
 
-- [5. Plan Before You Code](#5-plan-before-you-code)
+- [6. Plan Before You Code](#6-plan-before-you-code)
   - [Sharing Plans for Review](#sharing-plans-for-review)
   - [Verifying Plans with Multiple Agents](#verifying-plans-with-multiple-agents)
   - [Plan Template](#plan-template)
-- [6. Test Driven Development](#6-test-driven-development)
-- [7. Review Changes](#7-review-changes)
+- [7. Test Driven Development](#7-test-driven-development)
+- [8. Review Changes](#8-review-changes)
+- [9. Prompt Engineering](#9-prompt-engineering)
+- [10. Evals](#10-evals)
 
 **Advanced**
 
-- [8. Computer Use Agents (CUA)](#8-computer-use-agents-cua)
-- [9. Multi-Repo Orchestration](#9-multi-repo-orchestration)
+- [11. Computer Use Agents (CUA)](#11-computer-use-agents-cua)
+- [12. Multi-Repo Orchestration](#12-multi-repo-orchestration)
 
 ---
 
@@ -255,7 +258,17 @@ chmod +x .git/hooks/pre-commit
 
 ---
 
-## 5. Plan Before You Code
+## 5. CI/CD Integration
+
+AI agents run tests locally, but CI is the source of truth. AI-generated code must pass the same CI gates as human-written code — no separate pipeline, no lowered bar.
+
+- **Same gates for everyone.** Lint, format, type checks, and tests in CI apply equally to AI-generated and human-written code. If the agent's code doesn't pass, it's not ready.
+- **CI mirrors git hooks.** The lint and format checks in CI should match what runs locally via [git hooks](#4-git-hooks). CI catches anything that slipped through — a hook was skipped, a dependency wasn't installed, or the agent committed from an environment without hooks.
+- **No special AI pipeline needed.** The existing CI configuration works. The point is to not weaken it, not to add a new one.
+
+---
+
+## 6. Plan Before You Code
 
 Have the agent explain its approach before it starts editing files. A plan catches wrong assumptions before they become wrong code.
 
@@ -324,7 +337,7 @@ Don't delete plans after implementation. Old plans are useful context — they s
 
 ---
 
-## 6. Test Driven Development
+## 7. Test Driven Development
 
 Write the test first, verify it fails, then write the implementation. This is especially important for AI agents, which are prone to writing tests that mirror their implementation rather than independently encoding the requirement.
 
@@ -343,7 +356,7 @@ Write the test first, verify it fails, then write the implementation. This is es
 
 ---
 
-## 7. Review Changes
+## 8. Review Changes
 
 - **Review diffs before committing.** Use `git diff` to inspect what actually changed. Expand truncated output if needed.
 - **Never push code you haven't reviewed.**
@@ -352,7 +365,37 @@ There's a spectrum here. Reviewing every diff line by line is the safest approac
 
 ---
 
-## 8. Computer Use Agents (CUA)
+## 9. Prompt Engineering
+
+The quality of the agent's output depends on the quality of your prompt. Vague instructions produce vague results. Specific, context-rich prompts produce focused, correct code.
+
+- **Be specific.** Tell the agent what to do, which files to touch, and what not to change. "Add a `getUser` method to `src/api/users.ts` that calls the `/users/:id` endpoint" beats "add a way to get users."
+- **Provide context.** Reference the plan, paste the error message, link to the docs. Don't make the agent guess what you're looking at.
+- **Iterate, don't restart.** If the output is close but not right, refine the prompt. "That's close, but use a `Map` instead of an object for the cache" is faster than starting a new session.
+- **Use system prompts for repo-specific instructions.** `CLAUDE.md`, `AGENTS.md`, and similar config files persist conventions across sessions — coding standards, preferred libraries, architectural constraints. Write them once, and every session inherits the context.
+- **Constraints help.** "Change only `src/auth.ts`", "don't refactor surrounding code", "follow the pattern in `src/api/posts.ts`" — constraints reduce scope and make the output more predictable.
+
+---
+
+## 10. Evals
+
+Evals are automated tests for AI behaviour. Where unit tests check whether code produces correct output, evals check whether a prompt, skill, or agent produces correct output.
+
+**Why evals matter:** Prompts and skills change over time. A tweak to a system prompt can silently degrade output quality. Evals catch these regressions the same way unit tests catch code regressions — by running automatically and failing loudly.
+
+**How they work:**
+
+1. Spin up a fresh sub-agent with the resource under test (a skill, prompt, or `CLAUDE.md`)
+2. Have it perform a defined task
+3. Grade the output against expected criteria (correct files modified, expected patterns present, no regressions)
+
+**Example:** Test whether a coding skill satisfies a prompt correctly by running it in a clean agent session and checking the result against acceptance criteria — did it produce the right files, follow the coding standard, pass the tests?
+
+**Recommended platform:** [Anthropic's eval framework](https://docs.anthropic.com/en/docs/test-and-evaluate/strengthen-guardrails/reduce-hallucinations) provides tooling for building and running evals against Claude-based agents and prompts.
+
+---
+
+## 11. Computer Use Agents (CUA)
 
 Computer Use Agents interact with running applications through a browser or UI — clicking buttons, filling forms, navigating pages. They test the integrated system the way a user would.
 
@@ -366,6 +409,6 @@ CUA complements unit and integration tests — it doesn't replace them. Unit tes
 
 ---
 
-## 9. Multi-Repo Orchestration
+## 12. Multi-Repo Orchestration
 
 When a feature spans multiple repositories, you need coordination across agents. The [Multi-Repo Orchestration](multi-repo-orchestration.md) guide covers agent tiers, epic lifecycle, cross-repo code review, and contract testing.
