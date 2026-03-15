@@ -1,0 +1,15 @@
+#!/bin/bash
+commit_msg=$(cat "$1")
+
+if echo "$commit_msg" | grep -iq "claude"; then
+    echo "Commit rejected: message contains 'claude'"
+    exit 1
+fi
+
+first_char=$(echo "$commit_msg" | head -c 1)
+if [[ "$first_char" =~ ^[A-Z]$ ]]; then
+    echo "Commit rejected: message must start with lowercase letter"
+    exit 1
+fi
+
+exit 0

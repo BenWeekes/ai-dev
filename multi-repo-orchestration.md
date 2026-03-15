@@ -28,16 +28,16 @@
 
 This guide describes a **multi-agent architecture** for coordinating AI coding work across multiple git repositories. It builds on the [Progressive Disclosure Documentation Standard](progressive-disclosure-standard.md), which makes individual repos self-describing. This document addresses the next layer: how agents collaborate when a feature spans multiple codebases.
 
-The core idea: a coordinating agent plans cross-repo work, repo-level agents implement within their own boundaries, and structured review gates keep humans in the loop. [Test Driven Development](README.md#7-test-driven-development) anchors quality at the single-repo level; this document adds the multi-repo coordination layer on top.
+The core idea: a coordinating agent plans cross-repo work, repo-level agents implement within their own boundaries, and structured review gates keep humans in the loop. [Test Driven Development](README.md#8-test-driven-development) anchors quality at the single-repo level; this document adds the multi-repo coordination layer on top.
 
 ### Agent Tiers
 
-| Tier | Agent | Scope | Writes Code? |
-|------|-------|-------|-------------|
-| **T0** | System Agent | Cross-repo orchestration | No — plans and coordinates only |
-| **T1** | Repo Agent | Single repository | Yes — sole writer for its repo |
-| **T2** | Sub-Agent | Single task within a repo | Yes — delegated by Repo Agent |
-| **T3** | CUA | Integrated system (browser/UI) | No — tests and validates only |
+| Tier   | Agent        | Scope                          | Writes Code?                    |
+| ------ | ------------ | ------------------------------ | ------------------------------- |
+| **T0** | System Agent | Cross-repo orchestration       | No — plans and coordinates only |
+| **T1** | Repo Agent   | Single repository              | Yes — sole writer for its repo  |
+| **T2** | Sub-Agent    | Single task within a repo      | Yes — delegated by Repo Agent   |
+| **T3** | CUA          | Integrated system (browser/UI) | No — tests and validates only   |
 
 ---
 
@@ -102,12 +102,12 @@ Cross-repo features follow a predictable lifecycle: understand the system, plan 
 
 ### Agent Roles
 
-| Tier | Agent | What It Does | What It Never Does |
-|------|-------|--------------|--------------------|
-| T0 | System Agent | Plans, coordinates, assigns tasks across repos, manages review gates | Write code or modify repo files |
-| T1 | Repo Agent | Implements tasks, writes code and tests, reports status. Sole writer for its repo. | Modify files in another repo |
-| T2 | Sub-Agent | Executes scoped sub-tasks delegated by a Repo Agent (test writing, searches, scaffolding) | Act outside its delegated scope |
-| T3 | CUA | Tests the integrated system through browser/UI, reports pass/fail with screenshots | Write production code |
+| Tier | Agent        | What It Does                                                                              | What It Never Does              |
+| ---- | ------------ | ----------------------------------------------------------------------------------------- | ------------------------------- |
+| T0   | System Agent | Plans, coordinates, assigns tasks across repos, manages review gates                      | Write code or modify repo files |
+| T1   | Repo Agent   | Implements tasks, writes code and tests, reports status. Sole writer for its repo.        | Modify files in another repo    |
+| T2   | Sub-Agent    | Executes scoped sub-tasks delegated by a Repo Agent (test writing, searches, scaffolding) | Act outside its delegated scope |
+| T3   | CUA          | Tests the integrated system through browser/UI, reports pass/fail with screenshots        | Write production code           |
 
 > **Why separate the System Agent from Repo Agents?** A single agent with write access to multiple repos would violate repo sovereignty. The System Agent's power is coordination, not implementation. This prevents a class of bugs where an orchestrator makes locally-reasonable but globally-inconsistent changes.
 
@@ -141,20 +141,20 @@ The repo registry is populated by scraping L0 Identity Blocks from each repo's P
 
 ## Identity
 
-| Field | Value |
-|-------|-------|
-| System | [system-name] |
+| Field       | Value                               |
+| ----------- | ----------------------------------- |
+| System      | [system-name]                       |
 | Description | [What the system does — 1 sentence] |
-| Owner | [Team or org] |
-| Repos | [Count] |
+| Owner       | [Team or org]                       |
+| Repos       | [Count]                             |
 
 ## Repo Registry
 
-| Repo | Type | Language | Description |
-|------|------|----------|-------------|
-| `org/user-api` | api-service | TypeScript | User management REST API |
-| `org/user-sdk` | sdk-library | TypeScript | TypeScript SDK for User API |
-| `org/web-app` | frontend-app | TypeScript | Customer-facing web app |
+| Repo           | Type         | Language   | Description                 |
+| -------------- | ------------ | ---------- | --------------------------- |
+| `org/user-api` | api-service  | TypeScript | User management REST API    |
+| `org/user-sdk` | sdk-library  | TypeScript | TypeScript SDK for User API |
+| `org/web-app`  | frontend-app | TypeScript | Customer-facing web app     |
 
 ## Dependency Map
 
@@ -162,11 +162,11 @@ The repo registry is populated by scraping L0 Identity Blocks from each repo's P
 
 ## Shared Conventions
 
-| Convention | Value |
-|-----------|-------|
-| API versioning | [e.g., URL path prefix] |
-| Auth mechanism | [e.g., JWT] |
-| Error format | [e.g., `{ error: { code, message } }`] |
+| Convention     | Value                                  |
+| -------------- | -------------------------------------- |
+| API versioning | [e.g., URL path prefix]                |
+| Auth mechanism | [e.g., JWT]                            |
+| Error format   | [e.g., `{ error: { code, message } }`] |
 ```
 
 `[OPEN QUESTION]` Where does the System Card live? Options include a dedicated orchestration repo, auto-generation from L0 scraping, or a hybrid where the registry is auto-generated but shared conventions are maintained manually.
@@ -179,38 +179,38 @@ An "epic" is a cross-repo feature that requires coordinated changes across two o
 
 ### Phases
 
-| Phase | Name | Who | What Happens |
-|-------|------|-----|-------------|
-| 1 | Discovery | System Agent | Loads System Card, identifies affected repos, reads their L0/L1 docs |
-| 2 | Planning | System Agent | Produces an Epic Plan: per-repo tasks, execution order, interface changes |
-| 3 | Interface Agreement | System Agent + Repo Agents | All affected agents review and agree on interface contracts before code is written |
-| 4 | Implementation | Repo Agents (parallel) | Each agent implements its task using TDD, constrained by agreed contracts |
-| 5 | Integration | System Agent + Repo Agents | Cross-repo contract tests, integration verification |
-| 6 | E2E Validation | CUA | Tests the integrated system through browser/UI |
-| 7 | Deploy | Human | Production deployment per existing team process |
+| Phase | Name                | Who                        | What Happens                                                                       |
+| ----- | ------------------- | -------------------------- | ---------------------------------------------------------------------------------- |
+| 1     | Discovery           | System Agent               | Loads System Card, identifies affected repos, reads their L0/L1 docs               |
+| 2     | Planning            | System Agent               | Produces an Epic Plan: per-repo tasks, execution order, interface changes          |
+| 3     | Interface Agreement | System Agent + Repo Agents | All affected agents review and agree on interface contracts before code is written |
+| 4     | Implementation      | Repo Agents (parallel)     | Each agent implements its task using TDD, constrained by agreed contracts          |
+| 5     | Integration         | System Agent + Repo Agents | Cross-repo contract tests, integration verification                                |
+| 6     | E2E Validation      | CUA                        | Tests the integrated system through browser/UI                                     |
+| 7     | Deploy              | Human                      | Production deployment per existing team process                                    |
 
 ### Review Gates
 
 We recommend human review gates between key phases. The System Agent pauses and presents its work for approval before proceeding.
 
-| Gate | When | What the Human Reviews |
-|------|------|----------------------|
-| Plan Review | After Phase 2 | Epic Plan — affected repos, task breakdown, execution order |
-| Contract Review | After Phase 3 | Interface contracts between repos |
-| Code Review | After Phase 4 | Pull requests in each repo |
-| Integration Review | After Phase 5 | Cross-repo test results, contract alignment |
-| E2E Review | After Phase 6 | CUA test report and screenshots |
+| Gate               | When          | What the Human Reviews                                      |
+| ------------------ | ------------- | ----------------------------------------------------------- |
+| Plan Review        | After Phase 2 | Epic Plan — affected repos, task breakdown, execution order |
+| Contract Review    | After Phase 3 | Interface contracts between repos                           |
+| Code Review        | After Phase 4 | Pull requests in each repo                                  |
+| Integration Review | After Phase 5 | Cross-repo test results, contract alignment                 |
+| E2E Review         | After Phase 6 | CUA test report and screenshots                             |
 
 > **Why front-load reviews?** Cross-repo errors are expensive. A wrong interface contract discovered during implementation wastes work in multiple repos. Catching errors at the plan and contract phase is far cheaper. Teams can relax gates as they build trust in the system.
 
 ### Sovereignty in Practice
 
-The System Agent specifies *what* needs to happen. The Repo Agent decides *how*.
+The System Agent specifies _what_ needs to happen. The Repo Agent decides _how_.
 
-| System Agent Says | Repo Agent Decides |
-|---|---|
-| "Add a `/users` endpoint returning `{ id, name, email }`" | Route structure, controller design, model layer |
-| "Expose a `getUser(id)` method in the SDK" | Method signature, error handling, internal implementation |
+| System Agent Says                                         | Repo Agent Decides                                        |
+| --------------------------------------------------------- | --------------------------------------------------------- |
+| "Add a `/users` endpoint returning `{ id, name, email }`" | Route structure, controller design, model layer           |
+| "Expose a `getUser(id)` method in the SDK"                | Method signature, error handling, internal implementation |
 
 ---
 
@@ -234,12 +234,12 @@ Cross-repo review applies when a change in one repo alters a shared interface: a
 
 ### What Gets Reviewed
 
-| Change Type | Reviewer | What They Check |
-|---|---|---|
-| API response shape changed | Consumer Repo Agent(s) | Does my parsing/deserialization still work? |
-| SDK method signature changed | Consumer Repo Agent(s) | Do my call sites still compile/work? |
-| Shared data format changed | All Repo Agents using the format | Can I produce/consume the new format? |
-| New dependency introduced | Downstream Repo Agent(s) | Does this affect my build, deploy, or runtime? |
+| Change Type                  | Reviewer                         | What They Check                                |
+| ---------------------------- | -------------------------------- | ---------------------------------------------- |
+| API response shape changed   | Consumer Repo Agent(s)           | Does my parsing/deserialization still work?    |
+| SDK method signature changed | Consumer Repo Agent(s)           | Do my call sites still compile/work?           |
+| Shared data format changed   | All Repo Agents using the format | Can I produce/consume the new format?          |
+| New dependency introduced    | Downstream Repo Agent(s)         | Does this affect my build, deploy, or runtime? |
 
 > **This complements, not replaces, contract testing.** Contract tests verify interfaces mechanically. Cross-repo code review adds judgment: "Yes, this technically conforms to the contract, but the field name is confusing" or "This new optional field will cause issues with our caching layer."
 
@@ -251,21 +251,21 @@ Cross-repo review applies when a change in one repo alters a shared interface: a
 
 ### Test Driven Development
 
-Repo Agents follow [Test Driven Development](README.md#7-test-driven-development) as described in the README — write the test first, verify it fails, implement, verify it passes.
+Repo Agents follow [Test Driven Development](README.md#8-test-driven-development) as described in the README — write the test first, verify it fails, implement, verify it passes.
 
 ### Test Layers
 
-| Layer | Scope | Who | When |
-|-------|-------|-----|------|
-| Unit | Single function/module | Repo Agent | Phase 4 — Implementation |
-| Integration | Single repo, external deps mocked | Repo Agent | Phase 4 — Implementation |
-| Contract | Interface between two repos | Both Repo Agents | Phase 5 — Integration |
-| E2E (automated) | Running system, scripted flows | Repo Agent (test code) | Phase 5 — Integration |
-| E2E (CUA) | Running system, exploratory | CUA | Phase 6 — Validation |
+| Layer           | Scope                             | Who                    | When                     |
+| --------------- | --------------------------------- | ---------------------- | ------------------------ |
+| Unit            | Single function/module            | Repo Agent             | Phase 4 — Implementation |
+| Integration     | Single repo, external deps mocked | Repo Agent             | Phase 4 — Implementation |
+| Contract        | Interface between two repos       | Both Repo Agents       | Phase 5 — Integration    |
+| E2E (automated) | Running system, scripted flows    | Repo Agent (test code) | Phase 5 — Integration    |
+| E2E (CUA)       | Running system, exploratory       | CUA                    | Phase 6 — Validation     |
 
 ### The Completion Rule
 
-The [completion rule](README.md#7-test-driven-development) applies at every level: a Repo Agent should not report a task as complete if any test is failing or skipped. The System Agent should not advance the epic to the next phase while any repo has failing tests.
+The [completion rule](README.md#8-test-driven-development) applies at every level: a Repo Agent should not report a task as complete if any test is failing or skipped. The System Agent should not advance the epic to the next phase while any repo has failing tests.
 
 ### Contract Testing
 
@@ -286,10 +286,10 @@ If both pass, the contract is upheld. If either fails, integration will break �
 
 A two-repo proof of concept validates the core orchestration loop: **add a "user profile" feature** requiring a new API endpoint and a corresponding SDK method.
 
-| Repo | Type | What Changes |
-|------|------|-------------|
-| `demo-api` | API service (Express + TypeScript) | New `GET /v1/users/:id` endpoint |
-| `demo-sdk` | SDK library (TypeScript) | New `getUser(id): Promise<User>` method |
+| Repo       | Type                               | What Changes                            |
+| ---------- | ---------------------------------- | --------------------------------------- |
+| `demo-api` | API service (Express + TypeScript) | New `GET /v1/users/:id` endpoint        |
+| `demo-sdk` | SDK library (TypeScript)           | New `getUser(id): Promise<User>` method |
 
 Both repos have Progressive Disclosure docs pre-generated per the PD standard.
 
@@ -298,7 +298,7 @@ Both repos have Progressive Disclosure docs pre-generated per the PD standard.
 1. **Discovery** — System Agent loads the System Card, identifies both repos as affected, reads their L0 + relevant L1 files.
 2. **Planning** — System Agent produces an Epic Plan: `demo-api` provides the endpoint (no dependencies), `demo-sdk` consumes it (depends on API contract).
 3. **Interface agreement** — Both Repo Agents review and agree on the contract (response shape, error codes). Human reviews.
-4. **Implementation** — Both Repo Agents implement in parallel using [TDD](README.md#7-test-driven-development). The API agent writes endpoint tests first, then the endpoint. The SDK agent writes method tests first, then the method.
+4. **Implementation** — Both Repo Agents implement in parallel using [TDD](README.md#8-test-driven-development). The API agent writes endpoint tests first, then the endpoint. The SDK agent writes method tests first, then the method.
 5. **Cross-repo review** — The SDK Repo Agent reviews the API's response shape from the consumer perspective.
 6. **Integration** — Contract tests run in both repos. Integration test verifies the SDK can call the running API.
 7. **Validation** — If a frontend repo existed, CUA would test the user flow through the browser.
@@ -353,4 +353,3 @@ The PoC uses 2 repos. At 50+ repos, a flat System Card may need to become hierar
 **Contract versioning** `[OPEN QUESTION]`
 
 How do interface contracts evolve? Can a contract change mid-epic? We lean toward allowing amendments with re-approval for the PoC (pragmatic) and moving toward semantic versioning for production use (principled).
-

@@ -8,37 +8,38 @@
 - [2. Protect Sensitive Files](#2-protect-sensitive-files)
 - [3. Make Repos Self-Describing](#3-make-repos-self-describing)
 - [4. Git Hooks](#4-git-hooks)
-- [5. CI/CD Integration](#5-cicd-integration)
+- [5. Slash Commands](#5-slash-commands)
+- [6. CI/CD Integration](#6-cicd-integration)
 
 **Workflow**
 
-- [6. Plan Before You Code](#6-plan-before-you-code)
+- [7. Plan Before You Code](#7-plan-before-you-code)
   - [Sharing Plans for Review](#sharing-plans-for-review)
   - [Verifying Plans with Multiple Agents](#verifying-plans-with-multiple-agents)
   - [Plan Template](#plan-template)
-- [7. Test Driven Development](#7-test-driven-development)
-- [8. Review Changes](#8-review-changes)
-- [9. Prompt Engineering](#9-prompt-engineering)
-- [10. Evals](#10-evals)
+- [8. Test Driven Development](#8-test-driven-development)
+- [9. Review Changes](#9-review-changes)
+- [10. Prompt Engineering](#10-prompt-engineering)
+- [11. Evals](#11-evals)
 
 **Advanced**
 
-- [11. Computer Use Agents (CUA)](#11-computer-use-agents-cua)
-- [12. Multi-Repo Orchestration](#12-multi-repo-orchestration)
+- [12. Computer Use Agents (CUA)](#12-computer-use-agents-cua)
+- [13. Multi-Repo Orchestration](#13-multi-repo-orchestration)
 
 ---
 
 ## 1. AI Coding Tools
 
-| Tool | What It Is |
-|------|-----------|
+| Tool                                                          | What It Is                                                                                |
+| ------------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
 | [Claude Code](https://docs.anthropic.com/en/docs/claude-code) | Anthropic's CLI agent. Terminal-native, agentic, strong at multi-file edits. Recommended. |
-| [Cursor](https://cursor.sh) | VS Code fork with inline AI. Good for visual editing workflows. |
-| [GitHub Copilot](https://github.com/features/copilot) | GitHub's AI pair programmer. Inline completions and chat in VS Code/JetBrains. |
-| [Cody](https://sourcegraph.com/cody) | Sourcegraph's coding assistant. Strong codebase-aware context via code graph. |
-| [Aider](https://aider.chat) | Open-source CLI agent. Git-native, works with multiple LLM providers. |
+| [Cursor](https://cursor.sh)                                   | VS Code fork with inline AI. Good for visual editing workflows.                           |
+| [GitHub Copilot](https://github.com/features/copilot)         | GitHub's AI pair programmer. Inline completions and chat in VS Code/JetBrains.            |
+| [Cody](https://sourcegraph.com/cody)                          | Sourcegraph's coding assistant. Strong codebase-aware context via code graph.             |
+| [Aider](https://aider.chat)                                   | Open-source CLI agent. Git-native, works with multiple LLM providers.                     |
 
-Everything in this guide works with any of these tools. The practices are about *how you work*, not which tool you use.
+Everything in this guide works with any of these tools. The practices are about _how you work_, not which tool you use.
 
 ---
 
@@ -63,6 +64,8 @@ Even without adopting the full standard, a well-maintained README, clear directo
 ## 4. Git Hooks
 
 Git hooks enforce what agents (and humans) can't easily forget: coding conventions, code formatting, commit message standards, and author control. They run automatically on every commit, so quality checks don't depend on anyone remembering to run them.
+
+> **Quick install:** Run `./init.sh` to install hooks and set up slash commands for your AI agent.
 
 The hooks below are language-aware and work across JavaScript/TypeScript, Python, JSON, Markdown, and CSS.
 
@@ -96,25 +99,27 @@ chmod +x .git/hooks/commit-msg
 Runs lint and format checks on staged files, plus security scans for secrets and `.env` files.
 
 **What it checks:**
+
 - **Security:** Blocks `.env` files and files containing potential secrets (API keys, tokens, passwords)
 - **JavaScript/TypeScript:** ESLint + Prettier
 - **Python:** ruff (linting) + black (formatting) — warns if not installed
 - **JSON/Markdown/CSS:** Prettier
 
 **Prerequisites:**
+
 - JavaScript/TypeScript: `pnpm install` (installs ESLint, Prettier)
 - Python: `pip install black ruff` (optional)
 
 **Auto-fix commands:**
 
-| Command | What It Fixes |
-|---------|--------------|
-| `pnpm lint:fix` | JS/TS lint errors |
-| `pnpm format` | JS/TS/JSON/MD/CSS formatting |
-| `pnpm lint:py:fix` | Python lint errors |
-| `pnpm format:py` | Python formatting |
-| `pnpm format:all` | All languages |
-| `pnpm lint:all` | All languages |
+| Command            | What It Fixes                |
+| ------------------ | ---------------------------- |
+| `pnpm lint:fix`    | JS/TS lint errors            |
+| `pnpm format`      | JS/TS/JSON/MD/CSS formatting |
+| `pnpm lint:py:fix` | Python lint errors           |
+| `pnpm format:py`   | Python formatting            |
+| `pnpm format:all`  | All languages                |
+| `pnpm lint:all`    | All languages                |
 
 <details>
 <summary>Full pre-commit hook script</summary>
@@ -258,7 +263,32 @@ chmod +x .git/hooks/pre-commit
 
 ---
 
-## 5. CI/CD Integration
+## 5. Slash Commands
+
+This repo ships with four slash commands in `commands/`. Run `./init.sh <agent>` to install them for your AI coding tool.
+
+| Command   | What It Does                                                                      |
+| --------- | --------------------------------------------------------------------------------- |
+| `/plan`   | Create a plan in `docs/plans/` with numbered requirements and acceptance criteria |
+| `/review` | Review staged changes for correctness, security, conventions, and simplicity      |
+| `/tdd`    | Implement a task using strict test-driven development                             |
+| `/docs`   | Generate progressive disclosure documentation following the PD standard           |
+
+### Supported Agents
+
+| Agent            | Command             | Install Directory   |
+| ---------------- | ------------------- | ------------------- |
+| Claude Code      | `./init.sh claude`  | `.claude/commands/` |
+| OpenAI Codex CLI | `./init.sh codex`   | `.codex/prompts/`   |
+| Gemini CLI       | `./init.sh gemini`  | `.gemini/commands/` |
+| Cursor           | `./init.sh cursor`  | `.cursor/commands/` |
+| GitHub Copilot   | `./init.sh copilot` | `.github/agents/`   |
+
+Commands are plain markdown files with a `$ARGUMENTS` placeholder for user input. The init script copies them to the agent-specific directory and transforms the placeholder for agents that use a different syntax (e.g., `{{args}}` for Gemini).
+
+---
+
+## 6. CI/CD Integration
 
 AI agents run tests locally, but CI is the source of truth. AI-generated code must pass the same CI gates as human-written code — no separate pipeline, no lowered bar.
 
@@ -268,7 +298,7 @@ AI agents run tests locally, but CI is the source of truth. AI-generated code mu
 
 ---
 
-## 6. Plan Before You Code
+## 7. Plan Before You Code
 
 Have the agent explain its approach before it starts editing files. A plan catches wrong assumptions before they become wrong code.
 
@@ -316,28 +346,43 @@ Two agents disagreeing on approach is a signal to involve a human before any cod
 
 [How will we solve it? Bullet points.]
 
-## Acceptance Criteria
+## Requirements
 
-- [ ] [Criterion 1]
-- [ ] [Criterion 2]
-- [ ] [Criterion 3]
+Number every requirement. Use Given/When/Then for behavioral requirements.
+Use checkboxes for simple declarative criteria. Mark anything ambiguous with
+`[NEEDS CLARIFICATION]`.
+
+### Functional Requirements
+
+- **FR-001:** [Requirement title]
+  - Given [precondition]
+  - When [action]
+  - Then [expected outcome]
+
+- **FR-002:** [Requirement title]
+  - [ ] [Simple declarative criterion]
+
+### Non-Functional Requirements
+
+- **NFR-001:** [Requirement — e.g., performance, security, accessibility]
 
 ## Files to Change
 
-| File | Action |
-|------|--------|
-| `path/to/file` | Create / Modify / Delete |
+| File           | Action                   | Rationale                     |
+| -------------- | ------------------------ | ----------------------------- |
+| `path/to/file` | Create / Modify / Delete | Why this file needs to change |
 
 ## Open Questions
 
 - [Anything unresolved that needs human input]
+- Mark each with `[NEEDS CLARIFICATION]` if it blocks a requirement above
 ```
 
 Don't delete plans after implementation. Old plans are useful context — they show what was tried, what decisions were made, and why.
 
 ---
 
-## 7. Test Driven Development
+## 8. Test Driven Development
 
 Write the test first, verify it fails, then write the implementation. This is especially important for AI agents, which are prone to writing tests that mirror their implementation rather than independently encoding the requirement.
 
@@ -356,7 +401,7 @@ Write the test first, verify it fails, then write the implementation. This is es
 
 ---
 
-## 8. Review Changes
+## 9. Review Changes
 
 - **Review diffs before committing.** Use `git diff` to inspect what actually changed. Expand truncated output if needed.
 - **Never push code you haven't reviewed.**
@@ -365,7 +410,7 @@ There's a spectrum here. Reviewing every diff line by line is the safest approac
 
 ---
 
-## 9. Prompt Engineering
+## 10. Prompt Engineering
 
 The quality of the agent's output depends on the quality of your prompt. Vague instructions produce vague results. Specific, context-rich prompts produce focused, correct code.
 
@@ -379,7 +424,7 @@ For a real example of a well-structured prompt, see [Prompt: Generate Docs for a
 
 ---
 
-## 10. Evals
+## 11. Evals
 
 Evals are automated tests for AI behaviour. Where unit tests check whether code produces correct output, evals check whether a prompt, skill, or agent produces correct output.
 
@@ -397,7 +442,7 @@ Evals are automated tests for AI behaviour. Where unit tests check whether code 
 
 ---
 
-## 11. Computer Use Agents (CUA)
+## 12. Computer Use Agents (CUA)
 
 Computer Use Agents interact with running applications through a browser or UI — clicking buttons, filling forms, navigating pages. They test the integrated system the way a user would.
 
@@ -411,6 +456,6 @@ CUA complements unit and integration tests — it doesn't replace them. Unit tes
 
 ---
 
-## 12. Multi-Repo Orchestration
+## 13. Multi-Repo Orchestration
 
 When a feature spans multiple repositories, you need coordination across agents. The [Multi-Repo Orchestration](multi-repo-orchestration.md) guide covers agent tiers, epic lifecycle, cross-repo code review, and contract testing.
