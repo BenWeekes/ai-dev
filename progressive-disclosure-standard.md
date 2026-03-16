@@ -38,11 +38,11 @@
 
 This standard defines a **three-level documentation architecture (L0 / L1 / L2)** that makes any git repository self-describing for both AI coding agents and human engineers.
 
-| Level | Name | What It Is | Token Budget |
-|-------|------|-----------|-------------|
-| **L0** | Repo Card | Identity + L1 index. Always read first. Single file. | 300–500 |
-| **L1** | Operator Pack | Structured summaries for standard work. 7 fixed files. | 300–600 each |
-| **L2** | Deep Dives | Full specs and subsystem docs. Loaded only when needed. | No ceiling |
+| Level  | Name          | What It Is                                              | Token Budget |
+| ------ | ------------- | ------------------------------------------------------- | ------------ |
+| **L0** | Repo Card     | Identity + L1 index. Always read first. Single file.    | 300–500      |
+| **L1** | Operator Pack | Structured summaries for standard work. 7 fixed files.  | 300–600 each |
+| **L2** | Deep Dives    | Full specs and subsystem docs. Loaded only when needed. | No ceiling   |
 
 **Where docs live:** `docs/ai/` directory in every repository.
 
@@ -74,12 +74,12 @@ AI coding agents loading an entire codebase into context is expensive, slow, and
 
 Skills and progressive disclosure docs are structurally similar — both use a tree where a top-level entry gates access to deeper content. But they differ in **loading trigger** and **scoping**, and those differences matter.
 
-| | Skills | Progressive Disclosure Docs |
-|---|---|---|
-| **Loading trigger** | Request matching — activates when a query matches the skill description | Filesystem — loads because you're *in the repo* |
-| **Scoping** | Portable across repos and contexts | Local to this repo, always |
-| **Activation** | On-demand when matched | Always-on at session start |
-| **Versioning** | External to the repo | Travels with the repo in git — branches, forks, PRs |
+|                     | Skills                                                                  | Progressive Disclosure Docs                         |
+| ------------------- | ----------------------------------------------------------------------- | --------------------------------------------------- |
+| **Loading trigger** | Request matching — activates when a query matches the skill description | Filesystem — loads because you're _in the repo_     |
+| **Scoping**         | Portable across repos and contexts                                      | Local to this repo, always                          |
+| **Activation**      | On-demand when matched                                                  | Always-on at session start                          |
+| **Versioning**      | External to the repo                                                    | Travels with the repo in git — branches, forks, PRs |
 
 The filesystem already provides the right trigger (you're here) and scope (this repo's files). A skill that must always activate for the current repo is just files with extra indirection.
 
@@ -123,18 +123,21 @@ Skills remain the right model for portable, cross-repo capabilities that genuine
 #### Loading Examples
 
 **Config change** ("Update the Redis connection timeout"):
+
 ```
 Load L0 → load all L1 → 01_setup.md has the answer → done. No L2 needed.
 Total: ~3,500–5,000 tokens
 ```
 
 **Standard feature** ("Add a new /users endpoint"):
+
 ```
 Load L0 → load all L1 → 05_workflows.md + 04_conventions.md have what you need → done.
 Total: ~3,500–5,000 tokens
 ```
 
 **Complex change** ("Refactor the WebSocket event system"):
+
 ```
 Load L0 → load all L1 → 02_architecture.md + 06_interfaces.md give overview →
 need more detail → deep_dives/websocket_system.md → done.
@@ -145,13 +148,13 @@ Total: ~5,000–7,000 tokens
 
 #### Token Budget Targets
 
-| Component | Target | Hard Ceiling |
-|-----------|--------|-------------|
-| L0 (Repo Card) | 300–500 tokens | 600 tokens |
-| Each L1 file | 300–600 tokens | 800 tokens |
-| All 7 L1 files combined | 2,100–4,200 tokens | 5,600 tokens |
-| L0 + all L1 (session baseline) | 2,400–4,700 tokens | 6,200 tokens |
-| L2 files | No target | No ceiling (self-contained) |
+| Component                      | Target             | Hard Ceiling                |
+| ------------------------------ | ------------------ | --------------------------- |
+| L0 (Repo Card)                 | 300–500 tokens     | 600 tokens                  |
+| Each L1 file                   | 300–600 tokens     | 800 tokens                  |
+| All 7 L1 files combined        | 2,100–4,200 tokens | 5,600 tokens                |
+| L0 + all L1 (session baseline) | 2,400–4,700 tokens | 6,200 tokens                |
+| L2 files                       | No target          | No ceiling (self-contained) |
 
 ---
 
@@ -172,26 +175,26 @@ That's it. L0 is lean by design. Everything else lives in L1.
 
 L0 contains only identity and an index because agents load all L1 upfront. There's no need for routing tables, gotcha summaries, or quick commands in L0 when the total L1 cost is only ~3,000–4,500 tokens. Detailed content lives where it naturally belongs:
 
-| Content | Lives In |
-|---------|---------|
-| Core file listings | `03_code_map.md` |
-| Quick commands | `01_setup.md` |
-| Gotchas | `07_gotchas.md` |
+| Content               | Lives In                              |
+| --------------------- | ------------------------------------- |
+| Core file listings    | `03_code_map.md`                      |
+| Quick commands        | `01_setup.md`                         |
+| Gotchas               | `07_gotchas.md`                       |
 | Task-based navigation | Not needed — agent already has all L1 |
 
 #### Identity Block — Enterprise Discovery
 
 The Identity Block serves double duty: it orients agents working in this repo, AND it enables **enterprise-wide repo discovery**. A central registry can scrape all L0 files across the organization to build a map of every repo, its type, owner, language, and deployment target.
 
-| Field | Value | Discovery Use |
-|-------|-------|--------------|
-| `repo` | `org/repo-name` | Unique identifier |
-| `type` | `api-service` | Filter repos by kind |
-| `language` | `TypeScript + Express` | Find repos by tech stack |
-| `deploy_target` | `AWS ECS (Fargate)` | Map deployment topology |
-| `owner` | `Telephony Squad` | Route questions to the right team |
-| `description` | One-line summary | Search and browse |
-| `last_reviewed` | `2026-02-15` | Track freshness across org |
+| Field           | Value                  | Discovery Use                     |
+| --------------- | ---------------------- | --------------------------------- |
+| `repo`          | `org/repo-name`        | Unique identifier                 |
+| `type`          | `api-service`          | Filter repos by kind              |
+| `language`      | `TypeScript + Express` | Find repos by tech stack          |
+| `deploy_target` | `AWS ECS (Fargate)`    | Map deployment topology           |
+| `owner`         | `Telephony Squad`      | Route questions to the right team |
+| `description`   | One-line summary       | Search and browse                 |
+| `last_reviewed` | `2026-02-15`           | Track freshness across org        |
 
 #### L0 Template
 
@@ -202,26 +205,26 @@ The Identity Block serves double duty: it orients agents working in this repo, A
 
 ## Identity
 
-| Field | Value |
-|-------|-------|
-| Repo | `[org/repo-name]` |
-| Type | `[api-service / frontend-app / sdk-library / infrastructure]` |
-| Language | [Primary language and framework] |
-| Deploy Target | [Where this runs — e.g., AWS ECS, Vercel, Kubernetes] |
-| Owner | [Team or squad name] |
-| Last Reviewed | [YYYY-MM-DD] |
+| Field         | Value                                                         |
+| ------------- | ------------------------------------------------------------- |
+| Repo          | `[org/repo-name]`                                             |
+| Type          | `[api-service / frontend-app / sdk-library / infrastructure]` |
+| Language      | [Primary language and framework]                              |
+| Deploy Target | [Where this runs — e.g., AWS ECS, Vercel, Kubernetes]         |
+| Owner         | [Team or squad name]                                          |
+| Last Reviewed | [YYYY-MM-DD]                                                  |
 
 ## L1 Operator Pack
 
-| File | Purpose |
-|------|---------|
-| [01_setup](L1_operator_pack/01_setup.md) | Environment setup, quick commands, env vars |
-| [02_architecture](L1_operator_pack/02_architecture.md) | System design, component diagram, data flow |
-| [03_code_map](L1_operator_pack/03_code_map.md) | Directory tree, module map, "where does X live?" |
-| [04_conventions](L1_operator_pack/04_conventions.md) | Naming, patterns, error handling, testing |
-| [05_workflows](L1_operator_pack/05_workflows.md) | Step-by-step: add endpoint, deploy, migrate |
-| [06_interfaces](L1_operator_pack/06_interfaces.md) | API contracts, event schemas, DB schemas |
-| [07_gotchas](L1_operator_pack/07_gotchas.md) | Critical gotchas, tribal knowledge, incident lessons |
+| File                                                   | Purpose                                              |
+| ------------------------------------------------------ | ---------------------------------------------------- |
+| [01_setup](L1_operator_pack/01_setup.md)               | Environment setup, quick commands, env vars          |
+| [02_architecture](L1_operator_pack/02_architecture.md) | System design, component diagram, data flow          |
+| [03_code_map](L1_operator_pack/03_code_map.md)         | Directory tree, module map, "where does X live?"     |
+| [04_conventions](L1_operator_pack/04_conventions.md)   | Naming, patterns, error handling, testing            |
+| [05_workflows](L1_operator_pack/05_workflows.md)       | Step-by-step: add endpoint, deploy, migrate          |
+| [06_interfaces](L1_operator_pack/06_interfaces.md)     | API contracts, event schemas, DB schemas             |
+| [07_gotchas](L1_operator_pack/07_gotchas.md)           | Critical gotchas, tribal knowledge, incident lessons |
 ```
 
 ---
@@ -234,15 +237,15 @@ The Identity Block serves double duty: it orients agents working in this repo, A
 
 #### Standard File Set (7 files — fixed, never omit any)
 
-| # | File | Purpose | Typical Content |
-|---|------|---------|----------------|
-| 01 | `01_setup.md` | Environment and local dev | Prerequisites, install steps, env vars, local run, quick commands, common setup failures |
-| 02 | `02_architecture.md` | System design at a glance | Component diagram (ASCII), data flow, key abstractions, tech stack rationale |
-| 03 | `03_code_map.md` | Navigate the codebase | Directory tree with annotations, module responsibilities, core files table |
-| 04 | `04_conventions.md` | How we write code here | Naming, file structure, error handling, logging, testing patterns |
-| 05 | `05_workflows.md` | How to do common tasks | Step-by-step: add endpoint, add migration, deploy, handle incident |
-| 06 | `06_interfaces.md` | Boundary contracts | API schemas, event formats, DB schemas, external service contracts |
-| 07 | `07_gotchas.md` | Gotchas and tribal knowledge | Dangerous pitfalls, incident lessons, environment-specific behaviors |
+| #   | File                 | Purpose                      | Typical Content                                                                          |
+| --- | -------------------- | ---------------------------- | ---------------------------------------------------------------------------------------- |
+| 01  | `01_setup.md`        | Environment and local dev    | Prerequisites, install steps, env vars, local run, quick commands, common setup failures |
+| 02  | `02_architecture.md` | System design at a glance    | Component diagram (ASCII), data flow, key abstractions, tech stack rationale             |
+| 03  | `03_code_map.md`     | Navigate the codebase        | Directory tree with annotations, module responsibilities, core files table               |
+| 04  | `04_conventions.md`  | How we write code here       | Naming, file structure, error handling, logging, testing patterns                        |
+| 05  | `05_workflows.md`    | How to do common tasks       | Step-by-step: add endpoint, add migration, deploy, handle incident                       |
+| 06  | `06_interfaces.md`   | Boundary contracts           | API schemas, event formats, DB schemas, external service contracts                       |
+| 07  | `07_gotchas.md`      | Gotchas and tribal knowledge | Dangerous pitfalls, incident lessons, environment-specific behaviors                     |
 
 > **Why 7 files is fixed:** If a repo has no external interfaces, `06_interfaces.md` says "This repo has no external interfaces." It is **not** omitted. Predictability enables tooling and agent expectations.
 
@@ -269,7 +272,7 @@ The Identity Block serves double duty: it orients agents working in this repo, A
 ## [Section H2]
 
 | Column | Column |
-|--------|--------|
+| ------ | ------ |
 | Data   | Data   |
 
 ## Related Deep Dives
@@ -286,7 +289,7 @@ The Identity Block serves double duty: it orients agents working in this repo, A
 
 **Directory:** `docs/ai/L1_operator_pack/deep_dives/`
 
-> **Why under L1?** L2 is an *extension* of L1, not a sibling. An agent navigating from an L1 file to an L2 deep dive follows a simple relative path: `deep_dives/topic_name.md`.
+> **Why under L1?** L2 is an _extension_ of L1, not a sibling. An agent navigating from an L1 file to an L2 deep dive follows a simple relative path: `deep_dives/topic_name.md`.
 
 #### Index File (Required)
 
@@ -295,10 +298,10 @@ Every repo with L2 docs MUST have `docs/ai/L1_operator_pack/deep_dives/_index.md
 ```markdown
 # Deep Dives Index
 
-| Document | Summary | Load When |
-|----------|---------|-----------|
-| [call_routing.md](call_routing.md) | SIP call routing logic and decision tree | Modifying call flow or adding routing rules |
-| [websocket_system.md](websocket_system.md) | Real-time event system architecture | Changing WebSocket handlers or event schema |
+| Document                                   | Summary                                  | Load When                                   |
+| ------------------------------------------ | ---------------------------------------- | ------------------------------------------- |
+| [call_routing.md](call_routing.md)         | SIP call routing logic and decision tree | Modifying call flow or adding routing rules |
+| [websocket_system.md](websocket_system.md) | Real-time event system architecture      | Changing WebSocket handlers or event schema |
 ```
 
 #### Rules
@@ -332,11 +335,11 @@ Built on the `ws` library with a pub/sub pattern internally.
 
 ## Event Types
 
-| Event Type | Payload | Published When |
-|-----------|---------|---------------|
-| `call.initiated` | `{ callId, from, to }` | New inbound/outbound call |
+| Event Type           | Payload                          | Published When                |
+| -------------------- | -------------------------------- | ----------------------------- |
+| `call.initiated`     | `{ callId, from, to }`           | New inbound/outbound call     |
 | `call.state_changed` | `{ callId, oldState, newState }` | Call state machine transition |
-| `call.ended` | `{ callId, reason, duration }` | Call terminated |
+| `call.ended`         | `{ callId, reason, duration }`   | Call terminated               |
 
 ## Gotchas
 
@@ -388,12 +391,12 @@ repo-root/
 
 ### 4.2 File Naming Rules
 
-| Level | Naming Rule | Examples |
-|-------|------------|---------|
-| L0 | Exact name: `L0_repo_card.md` | `L0_repo_card.md` |
-| L1 | `NN_name.md` — zero-padded number + snake_case | `01_setup.md`, `05_workflows.md` |
-| L2 | snake_case, no number prefix | `call_routing.md`, `auth_flow.md` |
-| L2 Index | Exact name: `_index.md` | `_index.md` |
+| Level    | Naming Rule                                    | Examples                          |
+| -------- | ---------------------------------------------- | --------------------------------- |
+| L0       | Exact name: `L0_repo_card.md`                  | `L0_repo_card.md`                 |
+| L1       | `NN_name.md` — zero-padded number + snake_case | `01_setup.md`, `05_workflows.md`  |
+| L2       | snake_case, no number prefix                   | `call_routing.md`, `auth_flow.md` |
+| L2 Index | Exact name: `_index.md`                        | `_index.md`                       |
 
 - L1 files use the exact names listed in Section 3.3. No variations.
 - L2 file names: descriptive nouns, not verbs (`auth_flow.md` not `authenticate.md`).
@@ -403,13 +406,13 @@ repo-root/
 
 All links between progressive disclosure files use **relative paths**:
 
-| From | To | Pattern |
-|------|----|---------|
-| L0 → L1 | `[Setup](L1_operator_pack/01_setup.md)` | Relative from `docs/ai/` |
-| L1 → L2 | `[Call Routing](deep_dives/call_routing.md)` | Relative from `L1_operator_pack/` |
-| L2 → L2 | `[Auth Flow](auth_flow.md)` | Same directory |
-| L2 → L1 | `[Back to Interfaces](../06_interfaces.md)` | Parent directory |
-| Any → External | `[API Docs](https://docs.example.com) [EXTERNAL]` | Full URL with marker |
+| From           | To                                                | Pattern                           |
+| -------------- | ------------------------------------------------- | --------------------------------- |
+| L0 → L1        | `[Setup](L1_operator_pack/01_setup.md)`           | Relative from `docs/ai/`          |
+| L1 → L2        | `[Call Routing](deep_dives/call_routing.md)`      | Relative from `L1_operator_pack/` |
+| L2 → L2        | `[Auth Flow](auth_flow.md)`                       | Same directory                    |
+| L2 → L1        | `[Back to Interfaces](../06_interfaces.md)`       | Parent directory                  |
+| Any → External | `[API Docs](https://docs.example.com) [EXTERNAL]` | Full URL with marker              |
 
 **Rules:**
 
@@ -419,31 +422,31 @@ All links between progressive disclosure files use **relative paths**:
 
 ### 4.4 Content Density Targets
 
-| Level | Lines per File | Prose | Tables | Code Blocks |
-|-------|---------------|-------|--------|-------------|
-| L0 | 30–50 | None (tables only) | Required | None |
-| L1 | 80–200 per file | Minimal (≤3 sentences per section) | Encouraged | Short examples |
-| L2 | No ceiling | Allowed (but structured) | Yes | Full examples |
+| Level | Lines per File  | Prose                              | Tables     | Code Blocks    |
+| ----- | --------------- | ---------------------------------- | ---------- | -------------- |
+| L0    | 30–50           | None (tables only)                 | Required   | None           |
+| L1    | 80–200 per file | Minimal (≤3 sentences per section) | Encouraged | Short examples |
+| L2    | No ceiling      | Allowed (but structured)           | Yes        | Full examples  |
 
 **Aggregate budgets:**
 
-| Metric | Target | Maximum |
-|--------|--------|---------|
-| L0 lines | 30–50 | 60 |
-| Total L1 lines (all 7 files) | 700–1,200 | 1,400 |
-| Total L0 + L1 lines | 730–1,250 | 1,460 |
+| Metric                       | Target    | Maximum |
+| ---------------------------- | --------- | ------- |
+| L0 lines                     | 30–50     | 60      |
+| Total L1 lines (all 7 files) | 700–1,200 | 1,400   |
+| Total L0 + L1 lines          | 730–1,250 | 1,460   |
 
 ### 4.5 Anti-Patterns
 
 Do NOT put any of the following in `docs/ai/`:
 
-| Anti-Pattern | Why | Where It Belongs |
-|-------------|-----|-----------------|
-| Duplicating the README | Creates two sources of truth that drift apart | README stays at repo root; L1 is structured differently |
-| Auto-generated API docs (Swagger/TypeDoc output) | Goes stale, inflates token count, already available from source | Link from `06_interfaces.md` with `[EXTERNAL]` marker |
-| Operational runbooks (incident response, on-call playbooks) | Too long, changes frequently, audience is ops not developers | Wiki or runbook system; link from `07_gotchas.md` if critical |
-| Full database migration history | Unbounded growth, low signal | `06_interfaces.md` covers current schema; link to migration dir |
-| Commented-out "previous versions" of docs | Noise; git has history | Delete and rely on version control |
+| Anti-Pattern                                                | Why                                                             | Where It Belongs                                                |
+| ----------------------------------------------------------- | --------------------------------------------------------------- | --------------------------------------------------------------- |
+| Duplicating the README                                      | Creates two sources of truth that drift apart                   | README stays at repo root; L1 is structured differently         |
+| Auto-generated API docs (Swagger/TypeDoc output)            | Goes stale, inflates token count, already available from source | Link from `06_interfaces.md` with `[EXTERNAL]` marker           |
+| Operational runbooks (incident response, on-call playbooks) | Too long, changes frequently, audience is ops not developers    | Wiki or runbook system; link from `07_gotchas.md` if critical   |
+| Full database migration history                             | Unbounded growth, low signal                                    | `06_interfaces.md` covers current schema; link to migration dir |
+| Commented-out "previous versions" of docs                   | Noise; git has history                                          | Delete and rely on version control                              |
 
 **Rule of thumb:** If content is auto-generated, unbounded in growth, or has a better canonical home elsewhere — link to it, don't copy it.
 
@@ -451,14 +454,14 @@ Do NOT put any of the following in `docs/ai/`:
 
 #### When to Update
 
-| Trigger | What to Update |
-|---------|---------------|
-| New critical file or module added | L1 `03_code_map.md` |
-| Workflow changes | L1 `05_workflows.md` |
-| Gotcha discovered in incident | L1 `07_gotchas.md` |
-| API contract changes | L1 `06_interfaces.md` |
-| Subsystem undergoes significant change | Relevant L2 deep dive |
-| New external dependency added | L1 `01_setup.md`, L1 `02_architecture.md` |
+| Trigger                                | What to Update                            |
+| -------------------------------------- | ----------------------------------------- |
+| New critical file or module added      | L1 `03_code_map.md`                       |
+| Workflow changes                       | L1 `05_workflows.md`                      |
+| Gotcha discovered in incident          | L1 `07_gotchas.md`                        |
+| API contract changes                   | L1 `06_interfaces.md`                     |
+| Subsystem undergoes significant change | Relevant L2 deep dive                     |
+| New external dependency added          | L1 `01_setup.md`, L1 `02_architecture.md` |
 
 #### Freshness Tracking
 
@@ -552,6 +555,7 @@ See AGENTS.md for the full explanation.
 The L0 Identity Block includes a `repo_type` field. Valid values: `api-service`, `frontend-app`, `sdk-library`, `infrastructure`, `monorepo`, `data-pipeline`, `ml-model`, `mobile-app`.
 
 Specialization manifests in:
+
 1. **L1 file content emphasis** — which topics each file focuses on
 2. **L2 deep dive topics** — which subsystems need full docs
 3. Agents and tooling never need repo-type-specific branching for structure.
@@ -564,15 +568,15 @@ Specialization manifests in:
 
 #### L1 Content Emphasis
 
-| File | API Service Focus |
-|------|------------------|
-| `01_setup.md` | Database setup, Docker Compose, service dependencies, env var catalog, seed data, quick commands |
-| `02_architecture.md` | Request lifecycle diagram, middleware chain, service layer pattern, database access pattern |
-| `03_code_map.md` | Routes → Controllers → Services → Models → Migrations, middleware, config directories |
-| `04_conventions.md` | Route naming, error response format, logging standards, database query patterns |
-| `05_workflows.md` | "Add a new endpoint," "Add a migration," "Add a background worker," "Deploy to staging" |
-| `06_interfaces.md` | REST API contract (or OpenAPI ref), event bus schemas, database entity schemas |
-| `07_gotchas.md` | Connection pool limits, migration ordering, race conditions, SIP protocol edge cases |
+| File                 | API Service Focus                                                                                |
+| -------------------- | ------------------------------------------------------------------------------------------------ |
+| `01_setup.md`        | Database setup, Docker Compose, service dependencies, env var catalog, seed data, quick commands |
+| `02_architecture.md` | Request lifecycle diagram, middleware chain, service layer pattern, database access pattern      |
+| `03_code_map.md`     | Routes → Controllers → Services → Models → Migrations, middleware, config directories            |
+| `04_conventions.md`  | Route naming, error response format, logging standards, database query patterns                  |
+| `05_workflows.md`    | "Add a new endpoint," "Add a migration," "Add a background worker," "Deploy to staging"          |
+| `06_interfaces.md`   | REST API contract (or OpenAPI ref), event bus schemas, database entity schemas                   |
+| `07_gotchas.md`      | Connection pool limits, migration ordering, race conditions, SIP protocol edge cases             |
 
 #### Typical L2 Deep Dives
 
@@ -627,15 +631,15 @@ Inbound SIP INVITE → SIP Parser → Route Matcher → Call Handler → State M
 
 #### L1 Content Emphasis
 
-| File | Frontend Focus |
-|------|---------------|
-| `01_setup.md` | Node version, package manager, dev server, Storybook, browser requirements, quick commands |
+| File                 | Frontend Focus                                                                                   |
+| -------------------- | ------------------------------------------------------------------------------------------------ |
+| `01_setup.md`        | Node version, package manager, dev server, Storybook, browser requirements, quick commands       |
 | `02_architecture.md` | Component hierarchy, state management approach, data fetching layer, routing, rendering strategy |
-| `03_code_map.md` | Pages, components (shared vs feature), hooks/composables, stores, styles, assets |
-| `04_conventions.md` | Component naming, file co-location, CSS approach, prop drilling vs context rules |
-| `05_workflows.md` | "Add a new page," "Create a shared component," "Connect to a new API," "Add a feature flag" |
-| `06_interfaces.md` | Shared component prop contracts, store shapes, API client interface, route definitions |
-| `07_gotchas.md` | Hydration mismatches, state persistence quirks, CSS specificity traps, bundle size issues |
+| `03_code_map.md`     | Pages, components (shared vs feature), hooks/composables, stores, styles, assets                 |
+| `04_conventions.md`  | Component naming, file co-location, CSS approach, prop drilling vs context rules                 |
+| `05_workflows.md`    | "Add a new page," "Create a shared component," "Connect to a new API," "Add a feature flag"      |
+| `06_interfaces.md`   | Shared component prop contracts, store shapes, API client interface, route definitions           |
+| `07_gotchas.md`      | Hydration mismatches, state persistence quirks, CSS specificity traps, bundle size issues        |
 
 #### Typical L2 Deep Dives
 
@@ -670,15 +674,15 @@ Inbound SIP INVITE → SIP Parser → Route Matcher → Call Handler → State M
 
 #### L1 Content Emphasis
 
-| File | SDK/Library Focus |
-|------|------------------|
-| `01_setup.md` | Build toolchain, test harness, local linking, docs generation, quick commands |
-| `02_architecture.md` | Module dependency graph, public vs internal API boundary, extension points, versioning |
-| `03_code_map.md` | Public API surface (exports), internal modules, types directory, examples, test fixtures |
-| `04_conventions.md` | Semver rules, breaking change policy, deprecation pattern, public API naming |
-| `05_workflows.md` | "Add a public method," "Deprecate an API," "Write a usage example," "Release a new version" |
-| `06_interfaces.md` | Full public API surface (type signatures), configuration schema, plugin interface, error types |
-| `07_gotchas.md` | Backwards compatibility traps, bundle size impacts, peer dependency conflicts |
+| File                 | SDK/Library Focus                                                                              |
+| -------------------- | ---------------------------------------------------------------------------------------------- |
+| `01_setup.md`        | Build toolchain, test harness, local linking, docs generation, quick commands                  |
+| `02_architecture.md` | Module dependency graph, public vs internal API boundary, extension points, versioning         |
+| `03_code_map.md`     | Public API surface (exports), internal modules, types directory, examples, test fixtures       |
+| `04_conventions.md`  | Semver rules, breaking change policy, deprecation pattern, public API naming                   |
+| `05_workflows.md`    | "Add a public method," "Deprecate an API," "Write a usage example," "Release a new version"    |
+| `06_interfaces.md`   | Full public API surface (type signatures), configuration schema, plugin interface, error types |
+| `07_gotchas.md`      | Backwards compatibility traps, bundle size impacts, peer dependency conflicts                  |
 
 #### Typical L2 Deep Dives
 
@@ -692,15 +696,15 @@ Inbound SIP INVITE → SIP Parser → Route Matcher → Call Handler → State M
 
 #### L1 Content Emphasis
 
-| File | IaC Focus |
-|------|-----------|
-| `01_setup.md` | Cloud CLI tools, credentials setup, state backend access, plan/apply workflow, quick commands |
-| `02_architecture.md` | Environment topology (dev/staging/prod), resource dependency graph, network layout, blast radius zones |
-| `03_code_map.md` | Module directories, environment overlays, variable files, state files, CI/CD pipeline files |
-| `04_conventions.md` | Resource naming, tagging policy, module composition rules, secret management |
-| `05_workflows.md` | "Add a new resource," "Modify existing infrastructure," "Promote across environments," "Emergency rollback" |
-| `06_interfaces.md` | Module input/output variables, cross-stack references, external service endpoints |
-| `07_gotchas.md` | **Critical for IaC:** State corruption risks, destroy-before-create, cascading failures, cost surprises |
+| File                 | IaC Focus                                                                                                   |
+| -------------------- | ----------------------------------------------------------------------------------------------------------- |
+| `01_setup.md`        | Cloud CLI tools, credentials setup, state backend access, plan/apply workflow, quick commands               |
+| `02_architecture.md` | Environment topology (dev/staging/prod), resource dependency graph, network layout, blast radius zones      |
+| `03_code_map.md`     | Module directories, environment overlays, variable files, state files, CI/CD pipeline files                 |
+| `04_conventions.md`  | Resource naming, tagging policy, module composition rules, secret management                                |
+| `05_workflows.md`    | "Add a new resource," "Modify existing infrastructure," "Promote across environments," "Emergency rollback" |
+| `06_interfaces.md`   | Module input/output variables, cross-stack references, external service endpoints                           |
+| `07_gotchas.md`      | **Critical for IaC:** State corruption risks, destroy-before-create, cascading failures, cost surprises     |
 
 #### Typical L2 Deep Dives
 
@@ -731,11 +735,11 @@ Inbound SIP INVITE → SIP Parser → Route Matcher → Call Handler → State M
 
 ## Environment Differences
 
-| Resource | Dev | Staging | Prod |
-|----------|-----|---------|------|
-| RDS instance class | `db.t3.micro` | `db.t3.medium` | `db.r6g.xlarge` |
-| RDS Multi-AZ | No | No | Yes |
-| ECS task count | 1 | 2 | 4 (min), 12 (max) |
+| Resource           | Dev           | Staging        | Prod              |
+| ------------------ | ------------- | -------------- | ----------------- |
+| RDS instance class | `db.t3.micro` | `db.t3.medium` | `db.r6g.xlarge`   |
+| RDS Multi-AZ       | No            | No             | Yes               |
+| ECS task count     | 1             | 2              | 4 (min), 12 (max) |
 
 ## Related Deep Dives
 
@@ -785,11 +789,11 @@ repo-root/
 ```markdown
 ## Packages
 
-| Package | Path | Type | Description |
-|---------|------|------|-------------|
-| api | `packages/api/` | api-service | REST API backend |
-| web | `packages/web/` | frontend-app | React SPA |
-| shared | `packages/shared/` | sdk-library | Shared types and utilities |
+| Package | Path               | Type         | Description                |
+| ------- | ------------------ | ------------ | -------------------------- |
+| api     | `packages/api/`    | api-service  | REST API backend           |
+| web     | `packages/web/`    | frontend-app | React SPA                  |
+| shared  | `packages/shared/` | sdk-library  | Shared types and utilities |
 
 Each package has its own `docs/ai/` tree. Load `packages/[name]/docs/ai/L0_repo_card.md` to start.
 ```
@@ -797,6 +801,7 @@ Each package has its own `docs/ai/` tree. Load `packages/[name]/docs/ai/L0_repo_
 #### Data Pipeline
 
 Follows **API service** pattern. Key content shifts:
+
 - `02_architecture.md` — DAG/pipeline graph, sources → transforms → sinks
 - `06_interfaces.md` — Schema definitions (input/output), SLA contracts, data quality rules
 - `05_workflows.md` — "Add a pipeline stage," "Backfill historical data," "Handle schema evolution"
@@ -805,6 +810,7 @@ Follows **API service** pattern. Key content shifts:
 #### ML Model Repo
 
 Follows **SDK/library** pattern. Key content shifts:
+
 - `02_architecture.md` — Training vs serving architecture, feature pipeline diagram
 - `05_workflows.md` — "Retrain model," "Deploy model version," "A/B test a variant"
 - `06_interfaces.md` — Model I/O schemas, feature definitions, hyperparameter config
@@ -815,11 +821,12 @@ Follows **SDK/library** pattern. Key content shifts:
 
 ## 6. Prompt: Generate Docs for an Existing Repo
 
-Copy the entire fenced block below into an AI coding agent with repo file access. The prompt is self-contained.
+Copy the entire fenced block below into an AI coding agent with repo file access.
 
 > **Usage notes:**
+>
 > - Works with any AI tool that can read files (Claude Code, Cursor, Cody, Aider, etc.)
-> - The agent creates files one at a time — expect 10–20 tool calls
+> - For large repos, the agent should analyze modules separately and synthesize — use sub-agents or multiple passes as your tool supports
 > - Review generated docs for accuracy — agents may miss domain-specific gotchas
 
 ````markdown
@@ -828,64 +835,64 @@ Copy the entire fenced block below into an AI coding agent with repo file access
 You are a documentation agent. Analyze this codebase and generate progressive
 disclosure documentation under `docs/ai/`.
 
-## The Standard (Condensed)
+## The Standard
 
-**Loading model:** L0 (table of contents) → load ALL L1 at session start → L2 only when L1 isn't detailed enough.
+Read the full standard before starting:
+https://github.com/BenWeekes/ai-dev/blob/main/progressive-disclosure-standard.md
 
-**L0 — Repo Card** (`docs/ai/L0_repo_card.md`):
-- Single file, always read first, 30-50 lines max
-- Two sections: Identity Block (name, type, language, deploy target, owner,
-  last_reviewed) and L1 Index (table of 7 files with one-line purposes)
-- NO prose. Tables only.
+Key constraints to keep in mind:
 
-**L1 — Operator Pack** (`docs/ai/L1_operator_pack/`):
-- Exactly 7 files, never omit any:
-  01_setup.md, 02_architecture.md, 03_code_map.md, 04_conventions.md,
-  05_workflows.md, 06_interfaces.md, 07_gotchas.md
-- Agents load ALL 7 at session start (~3,000-4,500 tokens total)
-- Each: 80-200 lines, starts with one-line purpose, ends with
-  "## Related Deep Dives" (links or "None")
-- No prose >3 sentences. Use headers, bullets, tables, short code blocks.
-- 01_setup.md includes quick commands (build, test, run, deploy)
-- 07_gotchas.md includes all critical gotchas (no separate gotchas in L0)
-
-**L2 — Deep Dives** (`docs/ai/L1_operator_pack/deep_dives/`):
-- `_index.md` required — table: Document, Summary, Load When
-- Files: snake_case, no number prefix, flat directory
-- Each starts with "> **When to Read This:** ..." callout
-- Self-contained. No length ceiling. Create when L1 needs >10 lines on a topic.
-
-**Linking:** Relative paths only. Never link outside docs/ai/.
-External URLs marked with [EXTERNAL].
+- **L0** (Repo Card): Identity Block + L1 Index. 30-50 lines. No prose.
+- **L1** (Operator Pack): Exactly 7 files (01-07), 80-200 lines each, ~3,000-4,500 tokens total. All 7 loaded at session start.
+- **L2** (Deep Dives): Under `deep_dives/`, with `_index.md`. Self-contained. No ceiling.
+- **Linking:** Relative paths only within `docs/ai/`. External URLs marked `[EXTERNAL]`.
 
 ## Analysis Steps
 
-### Step 1: Understand the Repository
+### Step 1: Read Existing Project Context
+
+Read all markdown files and config/setup files in the repo root first. These
+contain project decisions, conventions, and context that should inform the
+generated docs:
+
+- All `*.md` files (README, CLAUDE.md, AGENTS.md, CONTRIBUTING, CHANGELOG, etc.)
+- Config files: package.json, Cargo.toml, go.mod, pyproject.toml, Dockerfile,
+  docker-compose.yml, Makefile, CI config — whatever exists
+- Setup scripts: init.sh, bootstrap.sh, setup.py, etc.
+
+### Step 2: Map the Repository Structure
 
 1. List directory structure (top 3 levels).
-2. Read config files: package.json, Cargo.toml, go.mod, pyproject.toml,
-   Dockerfile, docker-compose.yml, CI config — whatever exists.
-3. Identify repo type: api-service, frontend-app, sdk-library, infrastructure,
+2. Identify repo type: api-service, frontend-app, sdk-library, infrastructure,
    monorepo, data-pipeline, ml-model, or mobile-app.
+3. Identify the major modules, packages, or service boundaries. For each one,
+   note its directory path and apparent responsibility.
 
-### Step 2: Map the Architecture
+### Step 3: Deep-Read Each Module
 
-4. Read entry point files and primary source directories.
-5. Identify top 10-15 critical files/directories.
-6. Map primary data flow (request lifecycle, component hierarchy, module graph,
-   or resource dependency graph — whichever applies).
+For each major module or directory identified in Step 2:
 
-### Step 3: Extract Patterns and Knowledge
+1. Read all source files in the module (or a representative set if the module
+   is very large — aim for full coverage where feasible).
+2. Summarize: purpose, key abstractions, public interfaces, internal patterns,
+   external dependencies, and any gotchas found (TODO/FIXME/HACK comments,
+   complex conditionals, retry logic, environment-specific behavior).
 
-7. Identify coding conventions from 3-5 representative source files.
-8. Identify all external interfaces (APIs, databases, queues, caches).
-9. Find gotchas: TODO/FIXME/HACK comments, complex conditionals, environment
-   differences, retry logic, commented-out code.
+For large repos, analyze each module as a separate task and collect the
+summaries before moving to Step 4. Use sub-agents or multiple passes as
+your tool supports.
 
-### Step 4: Plan
+### Step 4: Synthesize and Plan
 
-10. List key topics for each L1 file (3-5 per file).
-11. Identify 2-4 L2 deep dive topics.
+Using the module summaries from Step 3:
+
+1. Map the primary data flow across the whole system (request lifecycle,
+   component hierarchy, module graph, or resource dependency graph).
+2. Identify coding conventions that are consistent across modules.
+3. Identify all external interfaces (APIs, databases, queues, caches).
+4. Compile gotchas from all modules.
+5. List key topics for each L1 file (3-5 per file).
+6. Identify 2-4 L2 deep dive topics.
 
 ## Output
 
@@ -898,9 +905,9 @@ Create files one at a time in this order:
 5. L2 deep dive files
 6. Verify all cross-references resolve
 
-## Also create: AGENTS.md
+## Also create: AGENTS.md and CLAUDE.md
 
-Create `AGENTS.md` at the repo root:
+Create `AGENTS.md` at the repo root (the universal AI entry point):
 
 ```
 # AI Agent Instructions
@@ -912,13 +919,27 @@ This repository uses progressive disclosure documentation.
 3. Follow L2 deep dive links only when L1 isn't detailed enough for your task.
 ```
 
+If `CLAUDE.md` exists, add a line pointing to AGENTS.md:
+
+```
+See [AGENTS.md](AGENTS.md) for AI agent instructions and progressive disclosure docs.
+```
+
+If `CLAUDE.md` does not exist, create it:
+
+```
+See [AGENTS.md](AGENTS.md) for AI agent instructions and progressive disclosure docs.
+```
+
 ## Quality Checklist
 
 **L0:** Identity Block with repo_type + last_reviewed. L1 Index table with all 7 files. ≤50 lines. No prose.
 
 **L1:** All 7 files exist. Each starts with purpose statement, ends with Related Deep Dives. 80-200 lines each. Total ≤1,400.
 
-**L2:** _index.md exists. ≥2 deep dives. Each starts with "When to Read This." All self-contained.
+**L2:** \_index.md exists. ≥2 deep dives. Each starts with "When to Read This." All self-contained.
+
+**CLAUDE.md:** Exists at repo root. Links to AGENTS.md.
 
 **Links:** All relative. All resolve. None point outside docs/ai/.
 ````
@@ -930,6 +951,7 @@ This repository uses progressive disclosure documentation.
 Copy the entire fenced block below into an AI coding agent. For repos with **little or no code yet**.
 
 > **Usage notes:**
+>
 > - The agent asks a questionnaire then generates starter docs with specific TODO markers
 > - L2 content files are NOT generated — just the index
 > - Re-run the existing-repo prompt (Section 6) once the codebase has taken shape
@@ -952,32 +974,30 @@ Ask the engineer (or extract from context):
 5. **Deployment target** (AWS ECS, Vercel, Kubernetes, Lambda, etc.)
 6. **Anticipated directory structure** (src/, lib/, modules/, packages/)
 
-## The Standard (Condensed)
+## The Standard
 
-**Loading model:** L0 (table of contents) → load ALL L1 at session start → L2 only when L1 isn't detailed enough.
+Read the full standard before starting:
+https://github.com/BenWeekes/ai-dev/blob/main/progressive-disclosure-standard.md
 
-**L0 — Repo Card** (`docs/ai/L0_repo_card.md`):
-- Identity Block + L1 Index table. 30-50 lines. No prose.
+Key constraints for bootstrapping:
 
-**L1 — Operator Pack** (`docs/ai/L1_operator_pack/`):
-- 7 files: 01_setup, 02_architecture, 03_code_map, 04_conventions,
-  05_workflows, 06_interfaces, 07_gotchas
-- Agents load all 7 at session start (~3,000-4,500 tokens total)
-- Each: starts with purpose, ends with Related Deep Dives
-
-**L2:** Generate only `_index.md` with anticipated topics. No content files yet.
+- **L0** (Repo Card): Identity Block + L1 Index. 30-50 lines. No prose.
+- **L1** (Operator Pack): Exactly 7 files (01-07), 80-200 lines each. All loaded at session start.
+- **L2:** Generate only `_index.md` with anticipated topics. No content files yet.
 
 ## TODO Marker Convention
 
 Use SPECIFIC TODO markers — never generic ones:
 
 GOOD:
+
 ```
 <!-- TODO: Document actual database schema once models are created -->
 <!-- TODO: List actual environment variables from .env.example once created -->
 ```
 
 BAD:
+
 ```
 <!-- TODO: Fill in later -->
 <!-- TODO: TBD -->
@@ -996,6 +1016,8 @@ Create files one at a time:
 4. `docs/ai/L1_operator_pack/deep_dives/_index.md` — 3-5 anticipated topics,
    all marked "To be created." No content files.
 5. `AGENTS.md` at repo root — Instructs agents to load L0 then all L1.
+6. `CLAUDE.md` at repo root — Points to AGENTS.md. If it already exists, add
+   a link to AGENTS.md rather than replacing existing content.
 
 ## Quality Checklist
 
@@ -1003,9 +1025,11 @@ Create files one at a time:
 
 **L1:** All 7 exist. Purpose statements present. All TODOs are specific.
 
-**L2:** _index.md only. No content files created.
+**L2:** \_index.md only. No content files created.
 
 **AGENTS.md:** Exists at repo root. Instructs: load L0, then all L1, then L2 only if needed.
+
+**CLAUDE.md:** Exists at repo root. Links to AGENTS.md.
 ````
 
 ---
@@ -1014,36 +1038,36 @@ Create files one at a time:
 
 ### 8.1 File Inventory
 
-| File | Level | Required? | Purpose |
-|------|-------|----------|---------|
-| `AGENTS.md` (repo root) | — | **Required** | Universal AI entry point |
-| `CLAUDE.md` (repo root) | — | Optional | Loading instructions + AGENTS.md reference |
-| `docs/ai/L0_repo_card.md` | L0 | **Required** | Identity + L1 index |
-| `docs/ai/L1_operator_pack/01_setup.md` | L1 | **Required** | Environment setup, quick commands |
-| `docs/ai/L1_operator_pack/02_architecture.md` | L1 | **Required** | System design overview |
-| `docs/ai/L1_operator_pack/03_code_map.md` | L1 | **Required** | Codebase navigation, core files |
-| `docs/ai/L1_operator_pack/04_conventions.md` | L1 | **Required** | Coding patterns |
-| `docs/ai/L1_operator_pack/05_workflows.md` | L1 | **Required** | Step-by-step task guides |
-| `docs/ai/L1_operator_pack/06_interfaces.md` | L1 | **Required** | Boundary contracts |
-| `docs/ai/L1_operator_pack/07_gotchas.md` | L1 | **Required** | Gotchas and tribal knowledge |
-| `docs/ai/L1_operator_pack/deep_dives/_index.md` | L2 | Required if L2 exists | Deep dive index |
-| `docs/ai/L1_operator_pack/deep_dives/*.md` | L2 | Optional | Topic deep dives |
+| File                                            | Level | Required?             | Purpose                                    |
+| ----------------------------------------------- | ----- | --------------------- | ------------------------------------------ |
+| `AGENTS.md` (repo root)                         | —     | **Required**          | Universal AI entry point                   |
+| `CLAUDE.md` (repo root)                         | —     | Optional              | Loading instructions + AGENTS.md reference |
+| `docs/ai/L0_repo_card.md`                       | L0    | **Required**          | Identity + L1 index                        |
+| `docs/ai/L1_operator_pack/01_setup.md`          | L1    | **Required**          | Environment setup, quick commands          |
+| `docs/ai/L1_operator_pack/02_architecture.md`   | L1    | **Required**          | System design overview                     |
+| `docs/ai/L1_operator_pack/03_code_map.md`       | L1    | **Required**          | Codebase navigation, core files            |
+| `docs/ai/L1_operator_pack/04_conventions.md`    | L1    | **Required**          | Coding patterns                            |
+| `docs/ai/L1_operator_pack/05_workflows.md`      | L1    | **Required**          | Step-by-step task guides                   |
+| `docs/ai/L1_operator_pack/06_interfaces.md`     | L1    | **Required**          | Boundary contracts                         |
+| `docs/ai/L1_operator_pack/07_gotchas.md`        | L1    | **Required**          | Gotchas and tribal knowledge               |
+| `docs/ai/L1_operator_pack/deep_dives/_index.md` | L2    | Required if L2 exists | Deep dive index                            |
+| `docs/ai/L1_operator_pack/deep_dives/*.md`      | L2    | Optional              | Topic deep dives                           |
 
 ### 8.2 Token Budget Summary
 
-| Scenario | Files Loaded | Estimated Tokens |
-|----------|-------------|-----------------|
-| Any task (baseline) | L0 + all 7 L1 | 2,400–4,700 |
-| Task needing L2 detail | L0 + all L1 + 1–2 L2 | 4,000–7,000+ |
-| Full context (avoid) | All files including all L2 | 8,000–15,000+ |
+| Scenario               | Files Loaded               | Estimated Tokens |
+| ---------------------- | -------------------------- | ---------------- |
+| Any task (baseline)    | L0 + all 7 L1              | 2,400–4,700      |
+| Task needing L2 detail | L0 + all L1 + 1–2 L2       | 4,000–7,000+     |
+| Full context (avoid)   | All files including all L2 | 8,000–15,000+    |
 
 **vs alternatives:**
 
-| Approach | Any Task (Baseline) | With L2 Depth |
-|----------|---------------------|--------------|
-| Full codebase in context | 50,000–200,000+ | 50,000–200,000+ |
-| Single large README | 3,000–10,000 | 3,000–10,000 |
-| **Progressive disclosure** | **2,400–4,700** | **4,000–7,000+** |
+| Approach                   | Any Task (Baseline) | With L2 Depth    |
+| -------------------------- | ------------------- | ---------------- |
+| Full codebase in context   | 50,000–200,000+     | 50,000–200,000+  |
+| Single large README        | 3,000–10,000        | 3,000–10,000     |
+| **Progressive disclosure** | **2,400–4,700**     | **4,000–7,000+** |
 
 ### 8.3 Adoption Checklist
 
@@ -1077,4 +1101,3 @@ A: Scrape all `L0_repo_card.md` files across repos. The Identity Block (name, ty
 
 **Q: What if the agent generates incorrect docs?**
 A: Expected for domain-specific content. Agents excel at structural generation but miss tribal knowledge. Always review with a senior engineer.
-
