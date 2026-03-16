@@ -2,44 +2,38 @@
 
 This guide to developing software with AI coding tools is intended to be flexible enough to allow teams to experiment with new models, frameworks, and methodologies while being prescriptive enough to ensure we follow best practices where appropriate and learn from each other.
 
+> **Quickstart:** `git clone` this repo, run `./init.sh claude` (or your agent), and start with `/spec <task>`.
+
 ## Table of Contents
 
 **Setup**
 
 - [1. AI Coding Tools](#1-ai-coding-tools)
 - [2. Protect Sensitive Files](#2-protect-sensitive-files)
-- [3. Our Progressive Disclosure Documentation Standard](#3-our-progressive-disclosure-documentation-standard)
+- [3. Progressive Disclosure Documentation Standard](#3-progressive-disclosure-documentation-standard)
 - [4. Git Hooks](#4-git-hooks)
 - [5. Slash Commands](#5-slash-commands)
+- [6. Optional Extensions](#6-optional-extensions)
 
 **Workflow**
 
-- [6. Test Driven Development](#6-test-driven-development)
-- [7. Spec and Plan Before You Code](#7-spec-and-plan-before-you-code)
+- [7. Test Driven Development](#7-test-driven-development)
+- [8. Spec and Plan Before You Code](#8-spec-and-plan-before-you-code)
   - [Spec Template](#spec-template)
   - [Plan Template](#plan-template)
-- [8. Review Changes](#8-review-changes)
-- [9. Prompt Engineering](#9-prompt-engineering)
-- [10. Evals](#10-evals)
+- [9. Review Changes](#9-review-changes)
+- [10. Prompt Engineering](#10-prompt-engineering)
+- [11. Evals](#11-evals)
 
 **Advanced**
 
-- [11. Multi-Repo Orchestration](#11-multi-repo-orchestration)
-- [12. Optional Extensions](#12-optional-extensions)
+- [12. Multi-Repo Orchestration](#12-multi-repo-orchestration)
 
 ---
 
 ## 1. AI Coding Tools
 
-| Tool                                                          | What It Is                                                                                |
-| ------------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
-| [Claude Code](https://docs.anthropic.com/en/docs/claude-code) | Anthropic's CLI agent. Terminal-native, agentic, strong at multi-file edits. Recommended. |
-| [Cursor](https://cursor.sh)                                   | VS Code fork with inline AI. Good for visual editing workflows.                           |
-| [GitHub Copilot](https://github.com/features/copilot)         | GitHub's AI pair programmer. Inline completions and chat in VS Code/JetBrains.            |
-| [Cody](https://sourcegraph.com/cody)                          | Sourcegraph's coding assistant. Strong codebase-aware context via code graph.             |
-| [Aider](https://aider.chat)                                   | Open-source CLI agent. Git-native, works with multiple LLM providers.                     |
-
-Everything in this guide works with any of these tools. The practices are about _how you work_, not which tool you use.
+Everything in this guide works with any AI coding tool. The practices are about _how you work_, not which tool you use. Common options include [Claude Code](https://docs.anthropic.com/en/docs/claude-code), [Cursor](https://cursor.sh), [GitHub Copilot](https://github.com/features/copilot), [Cody](https://sourcegraph.com/cody), and [Aider](https://aider.chat).
 
 ---
 
@@ -53,7 +47,7 @@ AI coding agents can typically read all files in your project. Prevent access to
 
 ---
 
-## 3. Our Progressive Disclosure Documentation Standard
+## 3. Progressive Disclosure Documentation Standard
 
 AI agents work better when they can quickly understand a codebase. The [Progressive Disclosure Documentation Standard](progressive-disclosure-standard.md) provides a structured way to do this — a single Repo Card (L0) for orientation, an Operator Pack (L1) for working knowledge, and deep dives (L2) for complex areas.
 
@@ -101,7 +95,20 @@ Commands are plain markdown files with a `$ARGUMENTS` placeholder for user input
 
 ---
 
-## 6. Test Driven Development
+## 6. Optional Extensions
+
+The practices in this guide are self-contained, but these projects add capabilities on top:
+
+| Project                                            | What It Adds                                                                                                       |
+| -------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| [Superpowers](https://github.com/obra/superpowers) | Subagent-per-task dispatch, two-stage review, systematic debugging methodology, model selection by task complexity |
+| [Spec Kit](https://github.com/github/spec-kit)     | Spec-driven development with executable specifications, multi-step refinement, cross-artifact validation           |
+
+These are optional — install them alongside this repo's commands if you want deeper agent orchestration or more structured spec workflows.
+
+---
+
+## 7. Test Driven Development
 
 Write the test first, verify it fails, then write the implementation. This is especially important for AI agents, which are prone to writing tests that mirror their implementation rather than independently encoding the requirement.
 
@@ -120,7 +127,7 @@ Write the test first, verify it fails, then write the implementation. This is es
 
 ---
 
-## 7. Spec and Plan Before You Code
+## 8. Spec and Plan Before You Code
 
 Separate WHAT from HOW. A spec captures requirements; a plan captures the implementation approach. This split prevents agents from locking into the first solution they think of and skipping requirements along the way.
 
@@ -128,7 +135,7 @@ Separate WHAT from HOW. A spec captures requirements; a plan captures the implem
 
 1. **Spec** (`/spec`) — Write down what the system should do and why. No implementation details. Save to `docs/plans/` with a `-spec` suffix.
 2. **Plan** (`/plan`) — Decide how to implement the spec. Reference the spec, break work into numbered tasks, list files to change. Save to `docs/plans/`.
-3. **Implement** (`/tdd`) — Build it test-first, following the plan.
+3. **Implement** (`/tdd`) — Build it test-first, following the plan. See [TDD](#7-test-driven-development) for the full cycle.
 
 ### Spec Template
 
@@ -197,27 +204,27 @@ Don't delete specs or plans after implementation. Old plans are useful context �
 
 ---
 
-## 8. Review Changes
+## 9. Review Changes
 
 Review diffs before committing. Use `git diff` to inspect what actually changed. Never push code you haven't reviewed.
 
+**A practical workflow:** tests pass → AI review (`/review`) → human review → commit (hooks run automatically).
+
 There's a spectrum of review depth. Find the balance that matches your confidence in the agent and the risk of the change:
 
-- **Tests** provide a mechanical safety net — if they pass, core behavior is correct. [TDD](#6-test-driven-development) ensures tests exist before the code does.
+- **Tests** provide a mechanical safety net — if they pass, core behavior is correct. [TDD](#7-test-driven-development) ensures tests exist before the code does.
 - **AI-assisted review** catches issues you might miss. Use `/review` to have an agent check staged changes in two passes — first for spec compliance (did the code meet the requirements?), then for code quality (correctness, security, conventions, simplicity).
 - **Human review** adds judgment that tests and agents can't — architectural fit, naming quality, whether the change is the right approach. Focus human attention on the parts that matter most.
 - **Git hooks** enforce formatting and conventions automatically, so reviewers don't waste time on style.
 
-A practical workflow: tests pass → AI review (`/review`) → human review → commit (hooks run automatically).
-
 ---
 
-## 9. Prompt Engineering
+## 10. Prompt Engineering
 
 The quality of the agent's output depends on the quality of your prompt. Specific, context-rich prompts produce focused, correct code.
 
 - **Be specific.** "Add a `getUser` method to `src/api/users.ts` that calls the `/users/:id` endpoint" beats "add a way to get users."
-- **Provide context.** Reference the plan, paste the error message, link to the docs.
+- **Provide context.** Reference the spec, reference the plan, paste the error message, link to the docs.
 - **Constrain scope.** "Change only `src/auth.ts`", "follow the pattern in `src/api/posts.ts`" — constraints reduce scope and make output more predictable.
 - **Use system prompts.** `CLAUDE.md`, `AGENTS.md`, and similar config files persist conventions across sessions. Write them once, every session inherits the context.
 
@@ -225,7 +232,7 @@ For a real example, see [Prompt: Generate Docs for an Existing Repo](progressive
 
 ---
 
-## 10. Evals
+## 11. Evals
 
 Evals are automated tests for AI behaviour. Where unit tests check whether code produces correct output, evals check whether a prompt, skill, or agent produces correct output.
 
@@ -243,19 +250,6 @@ Evals are automated tests for AI behaviour. Where unit tests check whether code 
 
 ---
 
-## 11. Multi-Repo Orchestration
+## 12. Multi-Repo Orchestration
 
 When a feature spans multiple repositories, you need coordination across agents. The [Multi-Repo Orchestration](multi-repo-orchestration.md) guide covers agent tiers, epic lifecycle, cross-repo code review, and contract testing.
-
----
-
-## 12. Optional Extensions
-
-The practices in this guide are self-contained, but these projects add capabilities on top:
-
-| Project                                            | What It Adds                                                                                                       |
-| -------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
-| [Superpowers](https://github.com/obra/superpowers) | Subagent-per-task dispatch, two-stage review, systematic debugging methodology, model selection by task complexity |
-| [Spec Kit](https://github.com/github/spec-kit)     | Spec-driven development with executable specifications, multi-step refinement, cross-artifact validation           |
-
-These are optional — install them alongside this repo's commands if you want deeper agent orchestration or more structured spec workflows.
