@@ -10,16 +10,39 @@ Generate progressive disclosure documentation for this repository following the 
 
 Read `progressive-disclosure-standard.md` to understand the L0/L1/L2 architecture, file naming rules, token budgets, and content density targets.
 
-### 2. Analyze the repository
+### 2. Read existing project context
 
-- List the directory structure (top 3 levels)
-- Read config files (package.json, Cargo.toml, go.mod, pyproject.toml, Dockerfile, CI config)
-- Identify repo type: api-service, frontend-app, sdk-library, infrastructure, monorepo, data-pipeline, ml-model
-- Read entry point files and primary source directories
-- Identify the top 10-15 critical files/directories
-- Map the primary data flow
+Read all markdown files and config/setup files in the repo root first — these contain project decisions, conventions, and context that should inform the generated docs:
 
-### 3. Generate docs
+- All `*.md` files (README, CLAUDE.md, AGENTS.md, CONTRIBUTING, CHANGELOG, etc.)
+- Config files: package.json, Cargo.toml, go.mod, pyproject.toml, Dockerfile, docker-compose.yml, Makefile, CI config
+- Setup scripts: init.sh, bootstrap.sh, setup.py, etc.
+
+### 3. Map and deep-read the codebase
+
+1. List the directory structure (top 3 levels)
+2. Identify repo type: api-service, frontend-app, sdk-library, infrastructure, monorepo, data-pipeline, ml-model
+3. Identify the major modules, packages, or service boundaries
+
+For each major module:
+
+- Read all source files (or a representative set if the module is very large)
+- Summarize: purpose, key abstractions, public interfaces, internal patterns, external dependencies, gotchas (TODO/FIXME/HACK, complex conditionals, retry logic, environment-specific behavior)
+
+For large repos, analyze each module as a separate sub-agent task and collect the summaries before proceeding.
+
+### 4. Synthesize and plan
+
+Using the module summaries:
+
+- Map the primary data flow across the whole system
+- Identify coding conventions consistent across modules
+- Identify all external interfaces (APIs, databases, queues, caches)
+- Compile gotchas from all modules
+- List key topics for each L1 file (3-5 per file)
+- Identify 2-4 L2 deep dive topics
+
+### 5. Generate docs
 
 Create files in this order:
 
@@ -29,7 +52,12 @@ Create files in this order:
 4. `docs/ai/L1_operator_pack/deep_dives/_index.md`
 5. L2 deep dive files (2-4 minimum)
 
-### 4. Verify
+Also create or update:
+
+- `AGENTS.md` at repo root with loading instructions
+- `CLAUDE.md` at repo root linking to AGENTS.md (add link if file exists, create if not)
+
+### 6. Verify
 
 - All cross-references resolve (relative links between L0 → L1 → L2)
 - L0 is under 50 lines
@@ -38,3 +66,4 @@ Create files in this order:
 - Each L1 file ends with `## Related Deep Dives`
 - Total L1 is under 1,400 lines
 - L2 files start with `> **When to Read This:** ...`
+- CLAUDE.md links to AGENTS.md
