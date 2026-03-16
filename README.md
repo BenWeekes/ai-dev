@@ -1,6 +1,6 @@
 # AI-Assisted Development Guide
 
-This guide is flexible enough to allow teams to experiment with new models, frameworks, and methodologies while being prescriptive enough to ensure we follow common practices where appropriate and learn from each other.
+This guide to developing software with AI coding tools is intended to be flexible enough to allow teams to experiment with new models, frameworks, and methodologies while being prescriptive enough to ensure we follow best practices where appropriate and learn from each other.
 
 ## Table of Contents
 
