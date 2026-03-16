@@ -9,7 +9,7 @@ fi
 
 CHECKS_FAILED=0
 
-# --- Security checks ---
+# --- Security checks (universal) ---
 
 echo "→ Checking for .env files..."
 if echo "$STAGED_FILES" | grep -E "\.env$|\.env\."; then
@@ -24,8 +24,7 @@ fi
 echo "→ Scanning for secrets..."
 SECRET_PATTERNS=(
     "API_KEY" "APIKEY" "SECRET" "TOKEN" "PASSWORD"
-    "PRIVATE_KEY" "AWS_ACCESS_KEY" "AWS_SECRET"
-    "CLIENT_SECRET" "AGORA_APP_ID" "AGORA_APP_CERTIFICATE"
+    "PRIVATE_KEY" "AWS_ACCESS_KEY" "AWS_SECRET" "CLIENT_SECRET"
 )
 for file in $STAGED_FILES; do
     if [ -f "$file" ]; then
@@ -38,85 +37,44 @@ for file in $STAGED_FILES; do
     fi
 done
 
-# --- JavaScript/TypeScript ---
+# --- Formatting (Prettier for common file types) ---
 
-TS_FILES=$(echo "$STAGED_FILES" | grep -E '\.(ts|tsx|js|jsx)$' || true)
-if [ -n "$TS_FILES" ]; then
-    echo "→ Running ESLint..."
-    for file in $TS_FILES; do
-        if ! npx eslint "$file" 2>/dev/null; then
-            echo "ESLint failed: $file"
-            CHECKS_FAILED=1
-        fi
-    done
-    if [ $CHECKS_FAILED -eq 1 ]; then
-        echo "Run 'pnpm lint:fix' to auto-fix"
-        exit 1
-    fi
-
-    echo "→ Running Prettier..."
-    for file in $TS_FILES; do
-        if ! npx prettier --check "$file" 2>/dev/null; then
-            echo "Prettier failed: $file"
-            CHECKS_FAILED=1
-        fi
-    done
-    if [ $CHECKS_FAILED -eq 1 ]; then
-        echo "Run 'pnpm format' to auto-fix"
-        exit 1
-    fi
-fi
-
-# --- Python ---
-
-PY_FILES=$(echo "$STAGED_FILES" | grep '\.py$' || true)
-if [ -n "$PY_FILES" ]; then
-    if command -v ruff &> /dev/null; then
-        echo "→ Running ruff..."
-        for file in $PY_FILES; do
-            if ! ruff check "$file" 2>/dev/null; then
+PRETTIER_FILES=$(echo "$STAGED_FILES" | grep -E '\.(ts|tsx|js|jsx|json|md|css|scss|html|yaml|yml)$' || true)
+if [ -n "$PRETTIER_FILES" ]; then
+    if command -v npx &> /dev/null; then
+        echo "→ Running Prettier..."
+        for file in $PRETTIER_FILES; do
+            if ! npx prettier --check "$file" 2>/dev/null; then
                 CHECKS_FAILED=1
             fi
         done
         if [ $CHECKS_FAILED -eq 1 ]; then
-            echo "Run 'pnpm lint:py:fix' to auto-fix"
+            echo "Run 'npx prettier --write <file>' to auto-fix"
             exit 1
         fi
     else
-        echo "ruff not found - skipping Python lint (install: pip install ruff)"
-    fi
-
-    if command -v black &> /dev/null; then
-        echo "→ Running black..."
-        for file in $PY_FILES; do
-            if ! black --check "$file" 2>/dev/null; then
-                CHECKS_FAILED=1
-            fi
-        done
-        if [ $CHECKS_FAILED -eq 1 ]; then
-            echo "Run 'pnpm format:py' to auto-fix"
-            exit 1
-        fi
-    else
-        echo "black not found - skipping Python format (install: pip install black)"
+        echo "npx not found — skipping Prettier"
     fi
 fi
 
-# --- JSON/Markdown/CSS ---
-
-OTHER_FILES=$(echo "$STAGED_FILES" | grep -E '\.(json|md|css|scss)$' || true)
-if [ -n "$OTHER_FILES" ]; then
-    echo "→ Running Prettier..."
-    for file in $OTHER_FILES; do
-        if ! npx prettier --check "$file" 2>/dev/null; then
-            CHECKS_FAILED=1
-        fi
-    done
-    if [ $CHECKS_FAILED -eq 1 ]; then
-        echo "Run 'pnpm format' to auto-fix"
-        exit 1
-    fi
-fi
+# --- Add project-specific checks below ---
+#
+# Uncomment or add checks that match your project's stack:
+#
+# ESLint (JavaScript/TypeScript):
+#   npx eslint "$file"
+#
+# ruff (Python linting):
+#   ruff check "$file"
+#
+# black (Python formatting):
+#   black --check "$file"
+#
+# go vet (Go):
+#   go vet ./...
+#
+# clippy (Rust):
+#   cargo clippy -- -D warnings
 
 # --- Result ---
 

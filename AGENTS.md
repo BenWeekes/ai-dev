@@ -17,9 +17,9 @@ This repo is a template for AI-assisted development. Clone it, run `./init.sh <a
 
 ## Conventions
 
-1. **Plan before code.** Use `/plan` to create a plan in `docs/plans/` before implementing. Plans are markdown, version-controlled, and reviewed in PRs.
-2. **TDD.** Write the test first, verify it fails, implement, verify it passes. Use `/tdd` to enforce the cycle.
-3. **Review before commit.** Use `/review` to check staged changes before committing.
+1. **TDD.** Write the test first, verify it fails, implement, verify it passes. Use `/tdd` to enforce the cycle.
+2. **Plan before code.** Use `/plan` to create a plan in `docs/plans/` before implementing non-trivial multi-step work. Plans are markdown, version-controlled, and reviewed in PRs.
+3. **Review before commit.** Use `/review` for AI-assisted review, then human review. Tests pass → AI review → human review → commit.
 4. **Commit messages:** lowercase start, no AI tool names, present tense. Hooks enforce this automatically.
 
 ## Slash Commands
