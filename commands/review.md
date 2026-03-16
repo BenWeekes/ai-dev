@@ -4,7 +4,26 @@ description: Review staged changes before committing
 
 Review the staged changes (`git diff --cached`) and evaluate them for commit readiness.
 
-## What to evaluate
+## Pass 1: Spec compliance
+
+Check whether the staged changes satisfy the requirements from the spec.
+
+1. **Find the spec.** Look in `docs/plans/` for a `-spec.md` file matching the current work. If multiple candidates exist, check git log for context.
+2. **Check each requirement.** For every FR and NFR in the spec, verify the staged changes satisfy it. Flag any requirement that is not addressed or only partially addressed.
+3. **No spec?** If no spec exists, note "No spec found — skipping spec compliance check" and proceed to Pass 2.
+
+For each unmet requirement:
+
+```
+### Pass 1: Spec compliance
+
+- **FR-001: [title]** — not addressed. [Explanation.]
+- **NFR-002: [title]** — partially addressed. [What's missing.]
+```
+
+If all requirements are met: "All spec requirements satisfied."
+
+## Pass 2: Code quality
 
 For each changed file, check:
 

@@ -12,6 +12,7 @@ Implement the following task using strict TDD. Follow the 6-step cycle exactly.
 
 Find the acceptance criteria for this task. Check:
 
+- The spec in `docs/plans/` (if one exists)
 - The plan in `docs/plans/` (if one exists)
 - The task description above
 - Any linked issues or PRs
@@ -47,9 +48,24 @@ If a test fails: **fix the code, not the test.** Weakening a test to match broke
 
 Stage and commit the implementation with passing tests.
 
+## Anti-rationalization table
+
+When tempted to skip or weaken tests, find your excuse below. The rebuttal is the correct action.
+
+| Excuse                                                     | Rebuttal                                                                    |
+| ---------------------------------------------------------- | --------------------------------------------------------------------------- |
+| "This is too simple to need a test."                       | Simple code breaks too. Write the test — it takes 30 seconds.               |
+| "I'll add tests after I get it working."                   | That's not TDD. The test comes first or it doesn't come at all.             |
+| "The test is wrong, not the code."                         | Re-read the spec. If the test matches the requirement, fix the code.        |
+| "Testing this would require too much setup."               | Complex setup means the code needs better boundaries. Refactor, then test.  |
+| "I just need to make this one small change without tests." | Small untested changes compound into large untested systems. No exceptions. |
+
+> **NEVER weaken a test to make it pass.** If the test matches the requirement and the code doesn't pass, the code is wrong. Changing the test to match broken code is the single most common way agents introduce bugs.
+
 ## Rules
 
 - **Never skip verify-red** (step 3). This is the most important step.
 - **Fix the code, not the test.** When tests fail after implementation, the code is wrong.
 - **Task is not done until zero failures.** No skipped tests, no ignored assertions.
 - **One cycle per behavior.** If the task has multiple acceptance criteria, run the full 6-step cycle for each one.
+- **NO COMPLETION CLAIMS WITHOUT FRESH VERIFICATION EVIDENCE.** Before declaring a task complete, run the full test suite and include the passing output. Stale or remembered results do not count.

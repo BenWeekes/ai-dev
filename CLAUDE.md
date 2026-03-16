@@ -4,7 +4,8 @@ See AGENTS.md for full conventions.
 
 ## Quick Reference
 
-- **Plan before code:** `/plan <task>` creates a plan in `docs/plans/`
+- **Spec before plan:** `/spec <task>` captures requirements (WHAT/WHY) in `docs/plans/`
+- **Plan before code:** `/plan <task>` plans implementation approach (HOW) referencing a spec
 - **TDD:** `/tdd <task>` enforces the red-green-commit cycle
 - **Review:** `/review` checks staged changes before committing
 - **Docs:** `/docs` generates progressive disclosure documentation

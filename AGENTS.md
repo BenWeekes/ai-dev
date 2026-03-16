@@ -4,36 +4,37 @@ This repo is a template for AI-assisted development. Clone it, run `./init.sh <a
 
 ## Repo Structure
 
-| Path                                 | Purpose                                                     |
-| ------------------------------------ | ----------------------------------------------------------- |
-| `README.md`                          | The guide — setup, workflow, advanced topics                |
-| `AGENTS.md`                          | Agent conventions (this file)                               |
-| `CLAUDE.md`                          | Claude Code wrapper — points here                           |
-| `commands/`                          | Slash command source files (neutral, all agents)            |
-| `hooks/`                             | Git hook scripts (installed by `init.sh`)                   |
-| `docs/plans/`                        | Plans created with `/plan` — version-controlled, reviewable |
-| `progressive-disclosure-standard.md` | Documentation standard for self-describing repos            |
-| `multi-repo-orchestration.md`        | Multi-agent coordination across repos                       |
+| Path                                 | Purpose                                          |
+| ------------------------------------ | ------------------------------------------------ |
+| `README.md`                          | The guide — setup, workflow, advanced topics     |
+| `AGENTS.md`                          | Agent conventions (this file)                    |
+| `CLAUDE.md`                          | Claude Code wrapper — points here                |
+| `commands/`                          | Slash command source files (neutral, all agents) |
+| `hooks/`                             | Git hook scripts (installed by `init.sh`)        |
+| `docs/plans/`                        | Specs and plans — version-controlled, reviewable |
+| `progressive-disclosure-standard.md` | Documentation standard for self-describing repos |
+| `multi-repo-orchestration.md`        | Multi-agent coordination across repos            |
 
 ## Conventions
 
 1. **TDD.** Write the test first, verify it fails, implement, verify it passes. Use `/tdd` to enforce the cycle.
-2. **Plan before code.** Use `/plan` to create a plan in `docs/plans/` before implementing non-trivial multi-step work. Plans are markdown, version-controlled, and reviewed in PRs.
+2. **Spec before plan, plan before code.** Use `/spec` to capture requirements, then `/plan` to design the approach. Both live in `docs/plans/`, are version-controlled, and reviewed in PRs.
 3. **Review before commit.** Use `/review` for AI-assisted review, then human review. Tests pass → AI review → human review → commit.
 4. **Commit messages:** lowercase start, no AI tool names, present tense. Hooks enforce this automatically.
 
 ## Slash Commands
 
-| Command   | What It Does                                                                      |
-| --------- | --------------------------------------------------------------------------------- |
-| `/plan`   | Create a plan in `docs/plans/` with numbered requirements and acceptance criteria |
-| `/review` | Review `git diff --cached` for correctness, security, conventions, and simplicity |
-| `/tdd`    | Implement a task using strict test-driven development                             |
-| `/docs`   | Generate progressive disclosure documentation following the PD standard           |
+| Command   | What It Does                                                                    |
+| --------- | ------------------------------------------------------------------------------- |
+| `/spec`   | Capture requirements (WHAT/WHY) in `docs/plans/` before planning implementation |
+| `/plan`   | Plan implementation approach (HOW) referencing a spec                           |
+| `/review` | Two-pass review: spec compliance first, then code quality                       |
+| `/tdd`    | Implement a task using strict test-driven development                           |
+| `/docs`   | Generate progressive disclosure documentation following the PD standard         |
 
 ## Architectural Constraints
 
-- **Plans live in `docs/plans/`.** Not in comments, not in issues, not ephemeral. They're markdown files in the repo.
+- **Specs and plans live in `docs/plans/`.** Not in comments, not in issues, not ephemeral. They're markdown files in the repo.
 - **Progressive disclosure for docs.** Follow `progressive-disclosure-standard.md` when generating repo documentation. Docs go in `docs/ai/`.
 - **Slash commands are simple markdown.** No scripts, no execution, no handoffs. A command is a prompt with `$ARGUMENTS` placeholder.
 - **Hooks are the safety net.** Git hooks enforce commit message format and run lint/format/security checks. Don't skip them.

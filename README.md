@@ -15,7 +15,8 @@ This guide to developing software with AI coding tools is intended to be flexibl
 **Workflow**
 
 - [6. Test Driven Development](#6-test-driven-development)
-- [7. Plan Before You Code](#7-plan-before-you-code)
+- [7. Spec and Plan Before You Code](#7-spec-and-plan-before-you-code)
+  - [Spec Template](#spec-template)
   - [Plan Template](#plan-template)
 - [8. Review Changes](#8-review-changes)
 - [9. Prompt Engineering](#9-prompt-engineering)
@@ -24,6 +25,7 @@ This guide to developing software with AI coding tools is intended to be flexibl
 **Advanced**
 
 - [11. Multi-Repo Orchestration](#11-multi-repo-orchestration)
+- [12. Optional Extensions](#12-optional-extensions)
 
 ---
 
@@ -75,14 +77,15 @@ The hooks live in `hooks/` and are installed to `.git/hooks/` by `init.sh`.
 
 ## 5. Slash Commands
 
-This repo ships with four slash commands in `commands/`. Run `./init.sh <agent>` to install them for your AI coding tool.
+This repo ships with five slash commands in `commands/`. Run `./init.sh <agent>` to install them for your AI coding tool.
 
-| Command   | What It Does                                                                      |
-| --------- | --------------------------------------------------------------------------------- |
-| `/plan`   | Create a plan in `docs/plans/` with numbered requirements and acceptance criteria |
-| `/review` | Review staged changes for correctness, security, conventions, and simplicity      |
-| `/tdd`    | Implement a task using strict test-driven development                             |
-| `/docs`   | Generate progressive disclosure documentation following the PD standard           |
+| Command   | What It Does                                                                    |
+| --------- | ------------------------------------------------------------------------------- |
+| `/spec`   | Capture requirements (WHAT/WHY) in `docs/plans/` before planning implementation |
+| `/plan`   | Plan implementation approach (HOW) referencing a spec                           |
+| `/review` | Two-pass review: spec compliance first, then code quality                       |
+| `/tdd`    | Implement a task using strict test-driven development                           |
+| `/docs`   | Generate progressive disclosure documentation following the PD standard         |
 
 ### Supported Agents
 
@@ -117,37 +120,26 @@ Write the test first, verify it fails, then write the implementation. This is es
 
 ---
 
-## 7. Plan Before You Code
+## 7. Spec and Plan Before You Code
 
-Have the agent explain its approach before it starts editing files. A plan catches wrong assumptions before they become wrong code.
+Separate WHAT from HOW. A spec captures requirements; a plan captures the implementation approach. This split prevents agents from locking into the first solution they think of and skipping requirements along the way.
 
-**What a plan includes:**
+**The workflow:** `/spec` → `/plan` → `/tdd`
 
-- **Problem:** What are we solving?
-- **Approach:** How will we solve it?
-- **Acceptance criteria:** How do we know it's done?
-- **Files to change:** Which files will be created or modified?
+1. **Spec** (`/spec`) — Write down what the system should do and why. No implementation details. Save to `docs/plans/` with a `-spec` suffix.
+2. **Plan** (`/plan`) — Decide how to implement the spec. Reference the spec, break work into numbered tasks, list files to change. Save to `docs/plans/`.
+3. **Implement** (`/tdd`) — Build it test-first, following the plan.
 
-Store plans in `docs/plans/` inside the repo. They're markdown files, version-controlled and reviewable in PRs. Old plans serve as context for future agents — they show how the codebase evolved and why.
-
-### Plan Template
+### Spec Template
 
 ```markdown
-# Plan: [Short Title]
+# Spec: [Short Title]
 
 ## Problem
 
-[What are we solving? 2-3 sentences.]
-
-## Approach
-
-[How will we solve it? Bullet points.]
+[What are we solving and why? 2-3 sentences.]
 
 ## Requirements
-
-Number every requirement. Use Given/When/Then for behavioral requirements.
-Use checkboxes for simple declarative criteria. Mark anything ambiguous with
-`[NEEDS CLARIFICATION]`.
 
 ### Functional Requirements
 
@@ -163,19 +155,45 @@ Use checkboxes for simple declarative criteria. Mark anything ambiguous with
 
 - **NFR-001:** [Requirement — e.g., performance, security, accessibility]
 
+## Open Questions
+
+- [Anything unresolved that needs human input]
+```
+
+The spec is WHAT and WHY only. No file paths, no function names, no technology choices.
+
+### Plan Template
+
+```markdown
+# Plan: [Short Title]
+
+## Spec
+
+[Link to the spec file in `docs/plans/`.]
+
+## Approach
+
+[How will we solve it? Bullet points.]
+
+## Task Breakdown
+
+- **T001:** [Task title]
+  - Files: `path/to/file`
+  - Depends on: —
+- **T002:** [Task title]
+  - Files: `path/to/file`
+  - Depends on: T001
+
 ## Files to Change
 
 | File           | Action                   | Rationale                     |
 | -------------- | ------------------------ | ----------------------------- |
 | `path/to/file` | Create / Modify / Delete | Why this file needs to change |
-
-## Open Questions
-
-- [Anything unresolved that needs human input]
-- Mark each with `[NEEDS CLARIFICATION]` if it blocks a requirement above
 ```
 
-Don't delete plans after implementation. Old plans are useful context — they show what was tried, what decisions were made, and why.
+The plan is HOW only. Requirements belong in the spec.
+
+Don't delete specs or plans after implementation. Old plans are useful context — they show what was tried, what decisions were made, and why.
 
 ---
 
@@ -186,7 +204,7 @@ Review diffs before committing. Use `git diff` to inspect what actually changed.
 There's a spectrum of review depth. Find the balance that matches your confidence in the agent and the risk of the change:
 
 - **Tests** provide a mechanical safety net — if they pass, core behavior is correct. [TDD](#6-test-driven-development) ensures tests exist before the code does.
-- **AI-assisted review** catches issues you might miss. Use `/review` to have an agent check staged changes for correctness, security, conventions, and simplicity before you commit.
+- **AI-assisted review** catches issues you might miss. Use `/review` to have an agent check staged changes in two passes — first for spec compliance (did the code meet the requirements?), then for code quality (correctness, security, conventions, simplicity).
 - **Human review** adds judgment that tests and agents can't — architectural fit, naming quality, whether the change is the right approach. Focus human attention on the parts that matter most.
 - **Git hooks** enforce formatting and conventions automatically, so reviewers don't waste time on style.
 
@@ -228,3 +246,16 @@ Evals are automated tests for AI behaviour. Where unit tests check whether code 
 ## 11. Multi-Repo Orchestration
 
 When a feature spans multiple repositories, you need coordination across agents. The [Multi-Repo Orchestration](multi-repo-orchestration.md) guide covers agent tiers, epic lifecycle, cross-repo code review, and contract testing.
+
+---
+
+## 12. Optional Extensions
+
+The practices in this guide are self-contained, but these projects add capabilities on top:
+
+| Project                                            | What It Adds                                                                                                       |
+| -------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| [Superpowers](https://github.com/obra/superpowers) | Subagent-per-task dispatch, two-stage review, systematic debugging methodology, model selection by task complexity |
+| [Spec Kit](https://github.com/github/spec-kit)     | Spec-driven development with executable specifications, multi-step refinement, cross-artifact validation           |
+
+These are optional — install them alongside this repo's commands if you want deeper agent orchestration or more structured spec workflows.
