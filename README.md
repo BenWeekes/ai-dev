@@ -171,16 +171,15 @@ Don't delete specs or plans after implementation. Old plans are useful context �
 
 ## 6. Review Changes
 
-Review diffs before committing. Use `git diff` to inspect what actually changed. Never push code you haven't reviewed.
+Humans gate decisions, AI gates execution. Not every commit needs human eyeballs on the diff — if tests pass and AI review passes, the code can proceed. Human attention should focus on the plan, the spec, and the final PR.
 
-**A practical workflow:** tests pass → AI review (`/review`) → human review → commit (hooks run automatically).
+**Human gates** — design approval (before implementation), spec review, final merge decision. These are the points where judgment matters: is this the right approach? Does the spec capture the real requirement? Is this ready to ship?
 
-There's a spectrum of review depth. Find the balance that matches your confidence in the agent and the risk of the change:
+**AI gates** — spec compliance and code quality checks between tasks. Use `/review` to have an agent check staged changes in two passes — first for spec compliance (did the code meet the requirements?), then for code quality (correctness, security, conventions, simplicity). [TDD](#4-test-driven-development) provides the mechanical safety net underneath.
 
-- **Tests** provide a mechanical safety net — if they pass, core behavior is correct. [TDD](#4-test-driven-development) ensures tests exist before the code does.
-- **AI-assisted review** catches issues you might miss. Use `/review` to have an agent check staged changes in two passes — first for spec compliance (did the code meet the requirements?), then for code quality (correctness, security, conventions, simplicity).
-- **Human review** adds judgment that tests and agents can't — architectural fit, naming quality, whether the change is the right approach. Focus human attention on the parts that matter most.
-- **Git hooks** enforce formatting and conventions automatically, so reviewers don't waste time on style.
+**Git hooks** enforce formatting and conventions automatically on every commit.
+
+**A practical workflow:** human approves spec → human approves plan → AI reviews each task (TDD + `/review`) → human reviews final PR → merge.
 
 ---
 
