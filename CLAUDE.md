@@ -4,10 +4,7 @@ See AGENTS.md for full conventions.
 
 ## Quick Reference
 
-- **Spec before plan:** `/spec <task>` captures requirements (WHAT/WHY) in `docs/plans/`
-- **Plan before code:** `/plan <task>` plans implementation approach (HOW) referencing a spec
-- **TDD:** `/tdd <task>` enforces the red-green-commit cycle
-- **Review:** `/review` checks staged changes before committing
+- **Workflow:** use [Superpowers](https://github.com/obra/superpowers) for spec, plan, TDD, and review
 - **Docs:** `/docs` generates progressive disclosure documentation
 - **Git:** `/git:ship` commit + push, `/git:pr` create PR, `/git:sync` rebase on main
 

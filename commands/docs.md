@@ -21,7 +21,7 @@ Read all markdown files and config/setup files in the repo root first — these 
 ### 3. Map and deep-read the codebase
 
 1. List the directory structure (top 3 levels)
-2. Identify repo type: api-service, frontend-app, sdk-library, infrastructure, monorepo, data-pipeline, ml-model
+2. Identify repo type: api-service, frontend-app, sdk-library, infrastructure, distributed-system, data-pipeline, ml-model
 3. Identify the major modules, packages, or service boundaries
 
 For each major module:
@@ -48,7 +48,7 @@ Create files in this order:
 
 1. `mkdir -p docs/ai/L1_operator_pack/deep_dives`
 2. `docs/ai/L0_repo_card.md` — Identity Block + L1 Index
-3. L1 files 01 through 07 in `docs/ai/L1_operator_pack/`
+3. L1 files 01 through 08 in `docs/ai/L1_operator_pack/`
 4. `docs/ai/L1_operator_pack/deep_dives/_index.md`
 5. L2 deep dive files (2-4 minimum)
 
@@ -64,6 +64,6 @@ Also create or update:
 - Each L1 file is 80-200 lines
 - Each L1 file starts with a one-line purpose statement
 - Each L1 file ends with `## Related Deep Dives`
-- Total L1 is under 1,400 lines
+- Total L1 is under 1,600 lines
 - L2 files start with `> **When to Read This:** ...`
 - CLAUDE.md links to AGENTS.md
