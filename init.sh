@@ -71,17 +71,21 @@ install_commands() {
 
     mkdir -p "$target_dir"
 
-    for cmd_file in "$COMMANDS_DIR"/*.md; do
+    # Find all .md files in commands/, including subdirectories
+    while IFS= read -r cmd_file; do
         [ -f "$cmd_file" ] || continue
-        local filename
-        filename="$(basename "$cmd_file")"
+
+        # Preserve directory structure: commands/git/ship.md -> target/git/ship.md
+        local rel_path="${cmd_file#"$COMMANDS_DIR"/}"
+        local dest_dir="$target_dir/$(dirname "$rel_path")"
+        mkdir -p "$dest_dir"
 
         if needs_args_transform "$agent"; then
-            sed 's/\$ARGUMENTS/{{args}}/g' "$cmd_file" > "$target_dir/$filename"
+            sed 's/\$ARGUMENTS/{{args}}/g' "$cmd_file" > "$dest_dir/$(basename "$cmd_file")"
         else
-            cp "$cmd_file" "$target_dir/$filename"
+            cp "$cmd_file" "$dest_dir/$(basename "$cmd_file")"
         fi
-    done
+    done < <(find "$COMMANDS_DIR" -name '*.md' -type f | sort)
 
     echo "  Commands installed to $rel_dir/"
 }
@@ -135,8 +139,10 @@ echo ""
 echo "Done! You're set up for $agent."
 echo ""
 echo "Available slash commands:"
-for cmd_file in "$COMMANDS_DIR"/*.md; do
+while IFS= read -r cmd_file; do
     [ -f "$cmd_file" ] || continue
-    local_name="$(basename "$cmd_file" .md)"
+    # Turn commands/git/ship.md into git:ship, commands/docs.md into docs
+    local_rel="${cmd_file#"$COMMANDS_DIR"/}"
+    local_name="$(echo "$local_rel" | sed 's/\.md$//' | sed 's|/|:|g')"
     echo "  /$local_name"
-done
+done < <(find "$COMMANDS_DIR" -name '*.md' -type f | sort)

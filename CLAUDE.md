@@ -9,6 +9,7 @@ See AGENTS.md for full conventions.
 - **TDD:** `/tdd <task>` enforces the red-green-commit cycle
 - **Review:** `/review` checks staged changes before committing
 - **Docs:** `/docs` generates progressive disclosure documentation
+- **Git:** `/git:ship` commit + push, `/git:pr` create PR, `/git:sync` rebase on main
 
 ## Commit Conventions
 
