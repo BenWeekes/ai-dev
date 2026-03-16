@@ -30,7 +30,7 @@
 
 This guide describes a **multi-agent architecture** for coordinating AI coding work across multiple git repositories. It builds on the [Progressive Disclosure Documentation Standard](progressive-disclosure-standard.md), which makes individual repos self-describing. This document addresses the next layer: how agents collaborate when a feature spans multiple codebases.
 
-The core idea: a coordinating agent specs and plans cross-repo work, repo-level agents implement within their own boundaries, and structured review gates keep humans in the loop. [Test Driven Development](README.md#4-test-driven-development) anchors quality at the single-repo level; this document adds the multi-repo coordination layer on top.
+The core idea: a coordinating agent specs and plans cross-repo work, repo-level agents implement within their own boundaries, and structured review gates keep humans in the loop. [Test Driven Development](README.md#4-workflow) anchors quality at the single-repo level; this document adds the multi-repo coordination layer on top.
 
 ### Agent Tiers
 
@@ -315,7 +315,7 @@ Cross-repo review applies when a change in one repo alters a shared interface: a
 
 ### Test Driven Development
 
-Repo Agents follow [Test Driven Development](README.md#4-test-driven-development) as described in the README — write the test first, verify it fails, implement, verify it passes.
+Repo Agents follow [Test Driven Development](README.md#4-workflow) as described in the README — write the test first, verify it fails, implement, verify it passes.
 
 ### Test Layers
 
@@ -329,7 +329,7 @@ Repo Agents follow [Test Driven Development](README.md#4-test-driven-development
 
 ### The Completion Rule
 
-The [completion rule](README.md#4-test-driven-development) applies at every level: a Repo Agent should not report a task as complete if any test is failing or skipped. The System Agent should not advance the epic to the next phase while any repo has failing tests.
+The [completion rule](README.md#4-workflow) applies at every level: a Repo Agent should not report a task as complete if any test is failing or skipped. The System Agent should not advance the epic to the next phase while any repo has failing tests.
 
 ### Contract Testing
 
@@ -364,7 +364,7 @@ Both repos have Progressive Disclosure docs pre-generated per the PD standard. S
 1. **Discovery** — System Agent loads the System Card, identifies both repos as affected, reads their L0 + relevant L1 files.
 2. **Planning** — System Agent produces an Epic Plan: `demo-api` provides the endpoint (no dependencies), `demo-sdk` consumes it (depends on API contract).
 3. **Interface agreement** — Both Repo Agents review and agree on the contract (response shape, error codes). Human reviews. See the contract example in §5.
-4. **Implementation** — Both Repo Agents implement in parallel using [TDD](README.md#4-test-driven-development). The API agent writes endpoint tests first, then the endpoint. The SDK agent writes method tests first, then the method.
+4. **Implementation** — Both Repo Agents implement in parallel using [TDD](README.md#4-workflow). The API agent writes endpoint tests first, then the endpoint. The SDK agent writes method tests first, then the method.
 5. **Cross-repo review** — The SDK Repo Agent reviews the API's response shape from the consumer perspective.
 6. **Integration** — Contract tests run in both repos. Integration test verifies the SDK can call the running API.
 7. **Validation** — If a frontend repo existed, the E2E Validator would test the user flow through the browser.

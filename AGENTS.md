@@ -1,6 +1,6 @@
 # Agent Conventions
 
-This repo is a template for AI-assisted development. Clone it, run `./init.sh <agent>`, and start working.
+This repo is a template for AI-assisted development. Clone it, run `./init.sh <agent>`, and start working. Use [Superpowers](https://github.com/obra/superpowers) for the workflow layer (spec, plan, TDD, review).
 
 ## Repo Structure
 
@@ -17,20 +17,18 @@ This repo is a template for AI-assisted development. Clone it, run `./init.sh <a
 
 ## Conventions
 
-1. **TDD.** Write the test first, verify it fails, implement, verify it passes. Use `/tdd` to enforce the cycle.
-2. **Spec before plan, plan before code.** Use `/spec` to capture requirements, then `/plan` to design the approach. Both live in `docs/plans/`, are version-controlled, and reviewed in PRs.
-3. **Review before commit.** Use `/review` for AI-assisted review, then human review. Tests pass → AI review → human review → commit.
+1. **TDD.** Write the test first, verify it fails, implement, verify it passes. Fix the code, not the test.
+2. **Spec before plan, plan before code.** Capture requirements (WHAT/WHY) before designing the approach (HOW). Both live in `docs/plans/`, are version-controlled, and reviewed in PRs.
+3. **Review before commit.** AI review checks spec compliance and code quality between tasks. Human review gates the plan, spec, and final PR.
 4. **Commit messages:** lowercase start, no AI tool names, present tense. Hooks enforce this automatically.
 
 ## Slash Commands
 
-| Command   | What It Does                                                                    |
-| --------- | ------------------------------------------------------------------------------- |
-| `/spec`   | Capture requirements (WHAT/WHY) in `docs/plans/` before planning implementation |
-| `/plan`   | Plan implementation approach (HOW) referencing a spec                           |
-| `/review` | Two-pass review: spec compliance first, then code quality                       |
-| `/tdd`    | Implement a task using strict test-driven development                           |
-| `/docs`   | Generate progressive disclosure documentation following the PD standard         |
+| Command | What It Does                                                            |
+| ------- | ----------------------------------------------------------------------- |
+| `/docs` | Generate progressive disclosure documentation following the PD standard |
+
+For workflow commands (spec, plan, TDD, review), use [Superpowers](https://github.com/obra/superpowers).
 
 ## Architectural Constraints
 
