@@ -1,0 +1,95 @@
+# Sample CI workflow for projects cloned from ai-dev.
+#
+# Copy this file to .github/workflows/ci.yml and uncomment the sections
+# that match your project. The workflow runs on PRs and pushes to main.
+#
+# What's included:
+#   - Prettier formatting check (works out of the box)
+#   - Secret scanning (works out of the box)
+#   - Placeholder sections for lint, build, and test (uncomment and adapt)
+
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # ── Formatting ──────────────────────────────────────────────
+      # Matches the pre-commit hook. No config needed.
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Check formatting (Prettier)
+        run: npx prettier --check .
+
+      # ── Secret scanning ─────────────────────────────────────────
+      # Matches the pre-commit hook. Fails if .env files or
+      # hardcoded secrets are found in staged files.
+
+      - name: Block .env files
+        run: |
+          if find . -name '.env' -o -name '.env.*' | grep -qv '.env.example'; then
+            echo "::error::.env file found in repo"
+            exit 1
+          fi
+
+      # ── Project-specific steps ──────────────────────────────────
+      # Uncomment and adapt the sections below for your stack.
+
+      # ── Node.js ──
+      # - name: Install dependencies
+      #   run: npm ci
+      #
+      # - name: Lint
+      #   run: npm run lint
+      #
+      # - name: Build
+      #   run: npm run build
+      #
+      # - name: Test
+      #   run: npm test
+
+      # ── Python ──
+      # - uses: actions/setup-python@v5
+      #   with:
+      #     python-version: "3.12"
+      #
+      # - name: Install dependencies
+      #   run: pip install -r requirements.txt
+      #
+      # - name: Lint
+      #   run: ruff check .
+      #
+      # - name: Test
+      #   run: pytest
+
+      # ── Go ──
+      # - uses: actions/setup-go@v5
+      #   with:
+      #     go-version: "1.22"
+      #
+      # - name: Lint
+      #   run: golangci-lint run
+      #
+      # - name: Test
+      #   run: go test ./...
+
+      # ── Rust ──
+      # - uses: dtolnay/rust-toolchain@stable
+      #
+      # - name: Lint
+      #   run: cargo clippy -- -D warnings
+      #
+      # - name: Test
+      #   run: cargo test

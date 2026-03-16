@@ -45,6 +45,8 @@ The hooks live in `hooks/` and are installed to `.git/hooks/` by `init.sh`.
 
 **pre-commit** — Blocks `.env` files, scans for hardcoded secrets, and runs Prettier formatting on staged files. Language-agnostic by default — add project-specific linters (ESLint, ruff, clippy, etc.) by uncommenting or extending the hooks.
 
+**CI** — A [sample GitHub Actions workflow](.github/workflows/ci.example.yml) is included for projects cloned from this template. It mirrors the hook checks (Prettier, secret scanning) and has commented-out sections for Node.js, Python, Go, and Rust. Copy it to `ci.yml` and uncomment what you need.
+
 ---
 
 ## 3. Slash Commands
