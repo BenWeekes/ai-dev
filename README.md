@@ -11,23 +11,19 @@ This guide to developing software with AI coding tools is intended to be flexibl
 - [3. Our Progressive Disclosure Documentation Standard](#3-our-progressive-disclosure-documentation-standard)
 - [4. Git Hooks](#4-git-hooks)
 - [5. Slash Commands](#5-slash-commands)
-- [6. CI/CD Integration](#6-cicd-integration)
 
 **Workflow**
 
-- [7. Test Driven Development](#7-test-driven-development)
-- [8. Plan Before You Code](#8-plan-before-you-code)
-  - [Sharing Plans for Review](#sharing-plans-for-review)
-  - [Verifying Plans with Multiple Agents](#verifying-plans-with-multiple-agents)
+- [6. Test Driven Development](#6-test-driven-development)
+- [7. Plan Before You Code](#7-plan-before-you-code)
   - [Plan Template](#plan-template)
-- [9. Review Changes](#9-review-changes)
-- [10. Prompt Engineering](#10-prompt-engineering)
-- [11. Evals](#11-evals)
+- [8. Review Changes](#8-review-changes)
+- [9. Prompt Engineering](#9-prompt-engineering)
+- [10. Evals](#10-evals)
 
 **Advanced**
 
-- [12. Computer Use Agents (CUA)](#12-computer-use-agents-cua)
-- [13. Multi-Repo Orchestration](#13-multi-repo-orchestration)
+- [11. Multi-Repo Orchestration](#11-multi-repo-orchestration)
 
 ---
 
@@ -102,17 +98,7 @@ Commands are plain markdown files with a `$ARGUMENTS` placeholder for user input
 
 ---
 
-## 6. CI/CD Integration
-
-AI agents run tests locally, but CI is the source of truth. AI-generated code must pass the same CI gates as human-written code — no separate pipeline, no lowered bar.
-
-- **Same gates for everyone.** Lint, format, type checks, and tests in CI apply equally to AI-generated and human-written code. If the agent's code doesn't pass, it's not ready.
-- **CI mirrors git hooks.** The lint and format checks in CI should match what runs locally via [git hooks](#4-git-hooks). CI catches anything that slipped through — a hook was skipped, a dependency wasn't installed, or the agent committed from an environment without hooks.
-- **No special AI pipeline needed.** The existing CI configuration works. The point is to not weaken it, not to add a new one.
-
----
-
-## 7. Test Driven Development
+## 6. Test Driven Development
 
 Write the test first, verify it fails, then write the implementation. This is especially important for AI agents, which are prone to writing tests that mirror their implementation rather than independently encoding the requirement.
 
@@ -131,7 +117,7 @@ Write the test first, verify it fails, then write the implementation. This is es
 
 ---
 
-## 8. Plan Before You Code
+## 7. Plan Before You Code
 
 Have the agent explain its approach before it starts editing files. A plan catches wrong assumptions before they become wrong code.
 
@@ -143,28 +129,6 @@ Have the agent explain its approach before it starts editing files. A plan catch
 - **Files to change:** Which files will be created or modified?
 
 Store plans in `docs/plans/` inside the repo. They're markdown files, version-controlled and reviewable in PRs. Old plans serve as context for future agents — they show how the codebase evolved and why.
-
-### Sharing Plans for Review
-
-Plans are cheap to review. Include them in PRs:
-
-- Create a plan file in `docs/plans/` before starting implementation
-- Open a draft PR with just the plan for early feedback
-- Tag both human reviewers and (optionally) AI review agents
-- Merge the plan alongside the implementation it describes
-
-### Verifying Plans with Multiple Agents
-
-Before implementing, have a second agent review the plan. Use a different tool or a separate session for an independent perspective.
-
-This is cheap — plans are small documents. The second agent checks for:
-
-- Missed edge cases
-- Simpler alternatives
-- Architectural issues the first agent didn't consider
-- Files or dependencies the plan overlooks
-
-Two agents disagreeing on approach is a signal to involve a human before any code is written.
 
 ### Plan Template
 
@@ -215,13 +179,13 @@ Don't delete plans after implementation. Old plans are useful context — they s
 
 ---
 
-## 9. Review Changes
+## 8. Review Changes
 
 Review diffs before committing. Use `git diff` to inspect what actually changed. Never push code you haven't reviewed.
 
 There's a spectrum of review depth. Find the balance that matches your confidence in the agent and the risk of the change:
 
-- **Tests** provide a mechanical safety net — if they pass, core behavior is correct. [TDD](#7-test-driven-development) ensures tests exist before the code does.
+- **Tests** provide a mechanical safety net — if they pass, core behavior is correct. [TDD](#6-test-driven-development) ensures tests exist before the code does.
 - **AI-assisted review** catches issues you might miss. Use `/review` to have an agent check staged changes for correctness, security, conventions, and simplicity before you commit.
 - **Human review** adds judgment that tests and agents can't — architectural fit, naming quality, whether the change is the right approach. Focus human attention on the parts that matter most.
 - **Git hooks** enforce formatting and conventions automatically, so reviewers don't waste time on style.
@@ -230,21 +194,20 @@ A practical workflow: tests pass → AI review (`/review`) → human review → 
 
 ---
 
-## 10. Prompt Engineering
+## 9. Prompt Engineering
 
-The quality of the agent's output depends on the quality of your prompt. Vague instructions produce vague results. Specific, context-rich prompts produce focused, correct code.
+The quality of the agent's output depends on the quality of your prompt. Specific, context-rich prompts produce focused, correct code.
 
-- **Be specific.** Tell the agent what to do, which files to touch, and what not to change. "Add a `getUser` method to `src/api/users.ts` that calls the `/users/:id` endpoint" beats "add a way to get users."
-- **Provide context.** Reference the plan, paste the error message, link to the docs. Don't make the agent guess what you're looking at.
-- **Iterate, don't restart.** If the output is close but not right, refine the prompt. "That's close, but use a `Map` instead of an object for the cache" is faster than starting a new session.
-- **Use system prompts for repo-specific instructions.** `CLAUDE.md`, `AGENTS.md`, and similar config files persist conventions across sessions — coding standards, preferred libraries, architectural constraints. Write them once, and every session inherits the context.
-- **Constraints help.** "Change only `src/auth.ts`", "don't refactor surrounding code", "follow the pattern in `src/api/posts.ts`" — constraints reduce scope and make the output more predictable.
+- **Be specific.** "Add a `getUser` method to `src/api/users.ts` that calls the `/users/:id` endpoint" beats "add a way to get users."
+- **Provide context.** Reference the plan, paste the error message, link to the docs.
+- **Constrain scope.** "Change only `src/auth.ts`", "follow the pattern in `src/api/posts.ts`" — constraints reduce scope and make output more predictable.
+- **Use system prompts.** `CLAUDE.md`, `AGENTS.md`, and similar config files persist conventions across sessions. Write them once, every session inherits the context.
 
-For a real example of a well-structured prompt, see [Prompt: Generate Docs for an Existing Repo](progressive-disclosure-standard.md#6-prompt-generate-docs-for-an-existing-repo) — a self-contained prompt that generates progressive disclosure documentation for any codebase.
+For a real example, see [Prompt: Generate Docs for an Existing Repo](progressive-disclosure-standard.md#6-prompt-generate-docs-for-an-existing-repo).
 
 ---
 
-## 11. Evals
+## 10. Evals
 
 Evals are automated tests for AI behaviour. Where unit tests check whether code produces correct output, evals check whether a prompt, skill, or agent produces correct output.
 
@@ -262,20 +225,6 @@ Evals are automated tests for AI behaviour. Where unit tests check whether code 
 
 ---
 
-## 12. Computer Use Agents (CUA)
-
-Computer Use Agents interact with running applications through a browser or UI — clicking buttons, filling forms, navigating pages. They test the integrated system the way a user would.
-
-**Use cases:**
-
-- **E2E validation:** Verify that a feature works end-to-end in the actual running application
-- **UI regression:** Catch visual or interaction regressions that unit tests can't detect
-- **Exploratory testing:** Have an agent explore the app looking for broken flows or unexpected behavior
-
-CUA complements unit and integration tests — it doesn't replace them. Unit tests are fast and precise. CUA tests are slow but realistic. Use both.
-
----
-
-## 13. Multi-Repo Orchestration
+## 11. Multi-Repo Orchestration
 
 When a feature spans multiple repositories, you need coordination across agents. The [Multi-Repo Orchestration](multi-repo-orchestration.md) guide covers agent tiers, epic lifecycle, cross-repo code review, and contract testing.
