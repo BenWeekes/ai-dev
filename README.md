@@ -46,11 +46,14 @@ The hooks live in `hooks/` and are installed to `.git/hooks/` by `init.sh`.
 
 ## 3. Slash Commands
 
-This repo ships with one slash command in `commands/`. Run `./init.sh <agent>` to install it for your AI coding tool.
+Slash commands live in `commands/`. Run `./init.sh <agent>` to install them for your AI coding tool. Subdirectories create namespaced commands — `commands/git/ship.md` becomes `/git:ship`.
 
-| Command | What It Does                                                            |
-| ------- | ----------------------------------------------------------------------- |
-| `/docs` | Generate progressive disclosure documentation following the PD standard |
+| Command     | What It Does                                                             |
+| ----------- | ------------------------------------------------------------------------ |
+| `/docs`     | Generate progressive disclosure documentation following the PD standard  |
+| `/git:ship` | Commit staged changes and push (preserves git author, no Co-Authored-By) |
+| `/git:pr`   | Create a PR from current branch to main with generated title and summary |
+| `/git:sync` | Pull latest from main, rebase current branch on top                      |
 
 For workflow commands (spec, plan, TDD, review), use [Superpowers](https://github.com/obra/superpowers) — it provides subagent-per-task dispatch, two-stage review, systematic debugging, and model selection by task complexity.
 

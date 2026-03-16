@@ -24,9 +24,12 @@ This repo is a template for AI-assisted development. Clone it, run `./init.sh <a
 
 ## Slash Commands
 
-| Command | What It Does                                                            |
-| ------- | ----------------------------------------------------------------------- |
-| `/docs` | Generate progressive disclosure documentation following the PD standard |
+| Command     | What It Does                                                             |
+| ----------- | ------------------------------------------------------------------------ |
+| `/docs`     | Generate progressive disclosure documentation following the PD standard  |
+| `/git:ship` | Commit staged changes and push (preserves git author, no Co-Authored-By) |
+| `/git:pr`   | Create a PR from current branch to main with generated title and summary |
+| `/git:sync` | Pull latest from main, rebase current branch on top                      |
 
 For workflow commands (spec, plan, TDD, review), use [Superpowers](https://github.com/obra/superpowers).
 

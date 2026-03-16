@@ -6,6 +6,7 @@ See AGENTS.md for full conventions.
 
 - **Workflow:** use [Superpowers](https://github.com/obra/superpowers) for spec, plan, TDD, and review
 - **Docs:** `/docs` generates progressive disclosure documentation
+- **Git:** `/git:ship` commit + push, `/git:pr` create PR, `/git:sync` rebase on main
 
 ## Commit Conventions
 
