@@ -24,7 +24,7 @@ A practical guide to developing software with AI coding tools. Works with any ag
 
 ## 1. Documentation Standard
 
-Every repo should have at least a Repo Card (L0) for orientation and an Operator Pack (L1) covering setup, architecture, and conventions. L2 deep dives are added as needed for complex areas. See the [Progressive Disclosure Documentation Standard](progressive-disclosure-standard.md) for the full spec, and the [prompt for generating docs for an existing repo](progressive-disclosure-standard.md#6-prompt-generate-docs-for-an-existing-repo).
+Every repo should have at least a Repo Card (L0) for orientation and an L1 summaries covering setup, architecture, and conventions. L2 deep dives are added as needed for complex areas. See the [Progressive Disclosure Documentation Standard](progressive-disclosure-standard.md) for the full spec, and the [prompt for generating docs for an existing repo](progressive-disclosure-standard.md#6-prompt-generate-docs-for-an-existing-repo).
 
 ---
 

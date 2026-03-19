@@ -46,16 +46,16 @@ Using the module summaries:
 
 Create files in this order:
 
-1. `mkdir -p docs/ai/L1_operator_pack/deep_dives`
+1. `mkdir -p docs/ai/L1/deep_dives`
 2. `docs/ai/L0_repo_card.md` — Identity Block + L1 Index
-3. L1 files 01 through 08 in `docs/ai/L1_operator_pack/`
-4. `docs/ai/L1_operator_pack/deep_dives/_index.md`
+3. L1 files 01 through 08 in `docs/ai/L1/`
+4. `docs/ai/L1/deep_dives/_index.md`
 5. L2 deep dive files (2-4 minimum)
 
 Also create or update:
 
 - `AGENTS.md` at repo root with loading instructions
-- `CLAUDE.md` at repo root linking to AGENTS.md (add link if file exists, create if not)
+- `CLAUDE.md` at repo root referencing @AGENTS.md (add reference if file exists, create if not)
 
 ### 6. Verify
 
@@ -66,4 +66,4 @@ Also create or update:
 - Each L1 file ends with `## Related Deep Dives`
 - Total L1 is under 1,600 lines
 - L2 files start with `> **When to Read This:** ...`
-- CLAUDE.md links to AGENTS.md
+- CLAUDE.md references @AGENTS.md

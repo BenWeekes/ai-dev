@@ -2,7 +2,7 @@
 
 ## A Guide to Multi-Agent Coordination Across Repositories
 
-> **Prerequisite:** This guide depends on the [Progressive Disclosure Documentation Standard](progressive-disclosure-standard.md). Repos must have at least L0 (Repo Card) and L1 (Operator Pack) docs for the System Agent to read. Set those up first.
+> **Prerequisite:** This guide depends on the [Progressive Disclosure Documentation Standard](progressive-disclosure-standard.md). Repos must have at least L0 (Repo Card) and L1 (summaries) docs for the System Agent to read. Set those up first.
 
 > **For single-repo AI coding practices, start with the [README](README.md).** This document covers coordination across multiple repositories.
 
