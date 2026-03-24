@@ -510,7 +510,7 @@ agents work efficiently. Documentation is structured in three levels under
 ## How to Load
 
 1. Read [docs/ai/L0_repo_card.md](docs/ai/L0_repo_card.md) to identify the repo.
-2. Load ALL 8 files in `docs/ai/L1/` (~3,500–5,000 tokens total).
+2. Load ALL 8 files in `docs/ai/L1/`. They are small — load all of them upfront.
    This gives you setup, architecture, code map, conventions, workflows,
    interfaces, gotchas, and security.
 3. If a task needs more detail than L1 provides, follow links to L2 deep dives
@@ -834,7 +834,7 @@ https://github.com/BenWeekes/ai-dev/blob/main/progressive-disclosure-standard.md
 Key constraints to keep in mind:
 
 - **L0** (Repo Card): Identity Block + L1 Index. 30-50 lines. No prose.
-- **L1** (Summaries): Exactly 8 files (01-08), 80-200 lines each, ~3,500-5,000 tokens total. All 8 loaded at session start.
+- **L1** (Summaries): Exactly 8 files (01-08), 80-200 lines each. All 8 loaded at session start.
 - **L2** (Deep Dives): Under `deep_dives/`, with `_index.md`. Self-contained. No ceiling.
 - **Linking:** Relative paths only within `docs/ai/`. External URLs marked `[EXTERNAL]`.
 
@@ -906,7 +906,7 @@ Create `AGENTS.md` at the repo root (the universal AI entry point):
 This repository uses progressive disclosure documentation.
 
 1. Read [docs/ai/L0_repo_card.md](docs/ai/L0_repo_card.md) to identify the repo.
-2. Load ALL 8 files in docs/ai/L1/ (~3,500-5,000 tokens total).
+2. Load ALL 8 files in docs/ai/L1/.
 3. Follow L2 deep dive links only when L1 isn't detailed enough for your task.
 ```
 
