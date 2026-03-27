@@ -1,6 +1,9 @@
 ---
-description: Generate progressive disclosure documentation for the repo
+name: update
+description: Generate or update progressive disclosure documentation for the repo. Use when the user wants to create docs, update docs, or run the docs generator.
 ---
+
+# update
 
 Generate progressive disclosure documentation for this repository following the standard in `progressive-disclosure-standard.md`.
 

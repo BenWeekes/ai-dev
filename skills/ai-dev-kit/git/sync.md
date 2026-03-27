@@ -1,6 +1,9 @@
 ---
-description: Rebase current branch onto the latest main
+name: sync
+description: Rebase current branch onto the latest main. Use when the user wants to sync, rebase, or pull latest changes from main.
 ---
+
+# sync
 
 Pull the latest changes from the main branch and rebase the current branch on top.
 

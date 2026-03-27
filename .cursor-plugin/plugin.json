@@ -1,0 +1,21 @@
+{
+  "name": "ai-dev-kit",
+  "displayName": "ai-dev-kit",
+  "description": "Git conventions and documentation generation for AI-assisted development",
+  "version": "1.1.0",
+  "author": {
+    "name": "Ben Weekes"
+  },
+  "homepage": "https://github.com/BenWeekes/ai-dev-kit",
+  "repository": "https://github.com/BenWeekes/ai-dev-kit",
+  "license": "MIT",
+  "keywords": [
+    "skills",
+    "git",
+    "documentation",
+    "progressive-disclosure",
+    "conventions"
+  ],
+  "skills": "./skills/",
+  "hooks": "./hooks/hooks-cursor.json"
+}

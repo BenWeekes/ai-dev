@@ -1,6 +1,9 @@
 ---
-description: Create a pull request from the current branch
+name: pr
+description: Create a pull request from the current branch. Use when the user wants to open a PR or send changes for review.
 ---
+
+# pr
 
 Create a pull request from the current branch to the base branch.
 

@@ -1,6 +1,9 @@
 ---
-description: Commit staged changes and push to remote
+name: ship
+description: Commit staged changes and push to remote. Use when the user says "ship it", "commit and push", or wants to send changes to the remote.
 ---
+
+# ship
 
 Commit the currently staged changes and push them to the remote.
 
